@@ -1,0 +1,47 @@
+---
+builds:
+  - id: trigger
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    dir: .
+    main: main.go
+    binary: trigger
+    flags:
+      - -trimpath
+    ldflags: -s -w -X github.com/gerrittrigger/trigger/config.Build={{.Date}} -X github.com/gerrittrigger/trigger/config.Version={{.Version}}
+
+dockers:
+  - image_templates: ["ghcr.io/gerrittrigger/{{ .ProjectName }}:{{ .Tag }}-amd64"]
+    dockerfile: Dockerfile-goreleaser
+    use: docker
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/gerrittrigger/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/gerrittrigger/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
+
+docker_manifests:
+  - name_template: ghcr.io/gerrittrigger/{{ .ProjectName }}:{{ .Tag }}
+    image_templates:
+      - ghcr.io/gerrittrigger/{{ .ProjectName }}:{{ .Tag }}-amd64
+  - name_template: ghcr.io/gerrittrigger/{{ .ProjectName }}:latest
+    image_templates:
+      - ghcr.io/gerrittrigger/{{ .ProjectName }}:{{ .Tag }}-amd64
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - Merge pull request
+      - Merge branch

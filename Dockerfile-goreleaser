@@ -1,0 +1,5 @@
+FROM gcr.io/distroless/base-debian11 AS production-stage
+WORKDIR /
+COPY trigger /
+USER nonroot:nonroot
+CMD ["/trigger"]

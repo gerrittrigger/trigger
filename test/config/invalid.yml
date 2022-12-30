@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: trigger
+metadata:
+  name: trigger
+spec:
+  connect:
+    frontendUrl: http://localhost:8080
+    hostname: localhost
+    name: gerrit
+    http:
+      password: pass
+      username: user
+    ssh:
+      keyfile: /path/to/.ssh/id_rsa
+      keyfilePassword: pass
+      port: 29418
+      username: user
+  trigger:
+    events:
+      - commitMessage: "message.*"
+        excludeDrafts: false
+        excludeTrivialRebase: false
+        excludeNoCodeChange: false
+        excludePrivateChanges: false
+        excludeWIPChanges: false
+        name: patchset-created
+        uploaderName: ""
+    projects:
+      - branches:
+          - pattern: main
+            type: plain
+        filePaths:
+          - pattern: name
+            type: plain
+        forbiddenFilePaths:
+          - pattern: "**/name"
+            type: path
+        repo:
+          pattern: ".*"
+          type: regexp
+        topics:
+          - pattern: name
+            type: plain
+  watchdog:
+    periodSeconds: 20
+    timeoutSeconds
