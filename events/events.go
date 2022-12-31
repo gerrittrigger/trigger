@@ -55,7 +55,7 @@ type Event struct {
 	RefUpdate   RefUpdate `json:"refUpdate,omitempty"`
 	ChangeKey   ChangeKey `json:"changeKey,omitempty"`
 
-	EventCreatedOn int `json:"eventCreatedOn,omitempty"`
+	EventCreatedOn int64 `json:"eventCreatedOn,omitempty"`
 }
 
 // Change - The Gerrit change being reviewed, or that was already reviewed
@@ -70,8 +70,8 @@ type Change struct {
 	Owner         Account `json:"owner,omitempty"`
 	URL           string  `json:"url,omitempty"`
 	CommitMessage string  `json:"commitMessage,omitempty"`
-	CreatedOn     int     `json:"createdOn,omitempty"`
-	LastUpdate    int     `json:"lastUpdate,omitempty"`
+	CreatedOn     int64   `json:"createdOn,omitempty"`
+	LastUpdate    int64   `json:"lastUpdate,omitempty"`
 	Open          bool    `json:"open,omitempty"`
 	Private       bool    `json:"private,omitempty"`
 	WIP           bool    `json:"wip,omitempty"`
@@ -116,7 +116,7 @@ type PatchSet struct {
 	Ref       string   `json:"ref,omitempty"`
 	Uploader  Account  `json:"uploader,omitempty"`
 	Author    Account  `json:"author,omitempty"`
-	CreatedOn int      `json:"createdOn,omitempty"`
+	CreatedOn int64    `json:"createdOn,omitempty"`
 	IsDraft   bool     `json:"isDraft,omitempty"`
 
 	// REWORK - Nontrivial content changes.
@@ -140,7 +140,7 @@ type Approval struct {
 	Description string  `json:"description,omitempty"`
 	Value       string  `json:"value,omitempty"`
 	OldValue    string  `json:"oldValue,omitempty"`
-	GrantedOn   int     `json:"grantedOn,omitempty"`
+	GrantedOn   int64   `json:"grantedOn,omitempty"`
 	Author      Account `json:"author,omitempty"`
 }
 
