@@ -184,14 +184,13 @@ func (t *trigger) postReport(ctx context.Context, _events []config.Event, projec
 	var m bool
 	var r chan string
 
-	e := events.Event{}
-
 	r, err = t.cfg.Queue.Get(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to get queue")
 	}
 
 	for item := range r {
+		e := events.Event{}
 		if err = json.Unmarshal([]byte(item), &e); err != nil {
 			break
 		}
