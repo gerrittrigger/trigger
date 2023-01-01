@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	counter = 2
+	waitCount = 2
 )
 
 type Trigger interface {
@@ -109,13 +109,17 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 	var err error
 	var wg sync.WaitGroup
 
+	if err = t.playbackEvent(ctx); err != nil {
+		return errors.Wrap(err, "failed to playback event")
+	}
+
 	buf := make(chan string)
 
 	go func(c context.Context, b chan string) {
 		t.fetchEvent(c, b)
 	}(ctx, buf)
 
-	wg.Add(counter)
+	wg.Add(waitCount)
 
 	go func(c context.Context, b chan string) {
 		defer wg.Done()
@@ -152,13 +156,33 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 	return err
 }
 
-func (t *trigger) fetchEvent(ctx context.Context, param chan string) {
+func (t *trigger) playbackEvent(ctx context.Context) error {
+	t.cfg.Logger.Debug("trigger: playbackEvent")
+
+	var err error
+
+	b, err := t.cfg.Playback.Load(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to load event")
+	}
+
+	for i := range b {
+		err = t.cfg.Queue.Put(ctx, b[i])
+		if err != nil {
+			break
+		}
+	}
+
+	return err
+}
+
+func (t *trigger) fetchEvent(ctx context.Context, event chan string) {
 	t.cfg.Logger.Debug("trigger: fetchEvent")
 
 	reconn := make(chan bool, 1)
 	start := make(chan bool, 1)
 
-	_ = t.cfg.Ssh.Start(ctx, "stream-events", param)
+	_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
 
 	go func(ctx context.Context, reconn, start chan bool) {
 		_ = t.cfg.Watchdog.Run(ctx, t.cfg.Ssh, reconn, start)
@@ -171,7 +195,7 @@ func (t *trigger) fetchEvent(ctx context.Context, param chan string) {
 				start <- true
 			}
 		case <-start:
-			_ = t.cfg.Ssh.Start(ctx, "stream-events", param)
+			_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
 		}
 	}
 }
@@ -207,6 +231,9 @@ func (t *trigger) postReport(ctx context.Context, _events []config.Event, projec
 				break
 			}
 			param <- b
+		}
+		if err = t.cfg.Playback.Store(ctx, item); err != nil {
+			break
 		}
 	}
 

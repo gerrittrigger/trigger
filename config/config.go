@@ -44,6 +44,7 @@ type Queue struct {
 }
 
 type Playback struct {
+	EventsApi string `yaml:"eventsApi"`
 }
 
 type Report struct {
