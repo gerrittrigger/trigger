@@ -21,7 +21,8 @@ const (
 	fileMode = 0644
 	fileName = "events-base64.playback"
 
-	queryLayout = "2006-01-02 15:04:05"
+	queryLayout   = "2006-01-02 15:04:05"
+	queryLocation = "Local"
 )
 
 type Playback interface {
@@ -126,6 +127,16 @@ func (p *playback) loadCache(_ context.Context, name string) (events.Event, erro
 	return e, nil
 }
 
+func (p *playback) formatQuery(_ context.Context, event *events.Event) (string, error) {
+	p.cfg.Logger.Debug("trigger: formatQuery")
+
+	loc, _ := time.LoadLocation(queryLocation)
+	s := time.Unix(event.EventCreatedOn+1, 0)
+	u := time.Now()
+
+	return fmt.Sprintf("since:%s until:%s", s.In(loc).Format(queryLayout), u.In(loc).Format(queryLayout)), nil
+}
+
 func (p *playback) queryEvent(_ context.Context, query string) ([]httpResult, error) {
 	p.cfg.Logger.Debug("trigger: queryEvent")
 
@@ -159,20 +170,11 @@ func (p *playback) queryEvent(_ context.Context, query string) ([]httpResult, er
 
 	var buf []httpResult
 
-	if err := json.Unmarshal(data[4:], &buf); err != nil {
+	if err := json.Unmarshal(data, &buf); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal event")
 	}
 
 	return buf, nil
-}
-
-func (p *playback) formatQuery(_ context.Context, event *events.Event) (string, error) {
-	p.cfg.Logger.Debug("trigger: formatQuery")
-
-	s := time.Unix(event.EventCreatedOn, 0)
-	u := time.Now()
-
-	return fmt.Sprintf("since:%s until:%s", s.Format(queryLayout), u.Format(queryLayout)), nil
 }
 
 func (p *playback) buildEvent(_ context.Context, data []httpResult) ([]string, error) {

@@ -166,12 +166,14 @@ func (t *trigger) playbackEvent(ctx context.Context) error {
 		return errors.Wrap(err, "failed to load event")
 	}
 
-	for i := range b {
-		err = t.cfg.Queue.Put(ctx, b[i])
-		if err != nil {
-			break
+	go func(c context.Context, d []string) {
+		for i := range d {
+			err = t.cfg.Queue.Put(c, d[i])
+			if err != nil {
+				return
+			}
 		}
-	}
+	}(ctx, b)
 
 	return err
 }
