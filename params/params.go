@@ -1,5 +1,6 @@
 package params
 
+// nolint:gosec
 const (
 	PARAMS_GERRIT_BRANCH                  = "GERRIT_BRANCH"
 	PARAMS_GERRIT_CHANGE_COMMIT_MESSAGE   = "GERRIT_CHANGE_COMMIT_MESSAGE"
