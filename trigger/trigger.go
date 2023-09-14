@@ -3,6 +3,7 @@ package trigger
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-hclog"
@@ -43,6 +44,7 @@ type Config struct {
 
 type trigger struct {
 	cfg *Config
+	pb  bool
 }
 
 func New(_ context.Context, cfg *Config) Trigger {
@@ -64,6 +66,12 @@ func (t *trigger) Init(ctx context.Context) error {
 
 	if err := t.cfg.Playback.Init(ctx); err != nil {
 		return errors.Wrap(err, "failed to init playback")
+	}
+
+	if strings.TrimSpace(t.cfg.Config.Spec.Playback.EventsApi) != "" {
+		t.pb = true
+	} else {
+		t.pb = false
 	}
 
 	if err := t.cfg.Query.Init(ctx); err != nil {
@@ -109,8 +117,10 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 	var err error
 	var wg sync.WaitGroup
 
-	if err = t.playbackEvent(ctx); err != nil {
-		return errors.Wrap(err, "failed to playback event")
+	if t.pb {
+		if err = t.playbackEvent(ctx); err != nil {
+			return errors.Wrap(err, "failed to playback event")
+		}
 	}
 
 	buf := make(chan string)
@@ -234,8 +244,10 @@ func (t *trigger) postReport(ctx context.Context, _events []config.Event, projec
 			}
 			param <- b
 		}
-		if err = t.cfg.Playback.Store(ctx, item); err != nil {
-			break
+		if t.pb {
+			if err = t.cfg.Playback.Store(ctx, item); err != nil {
+				break
+			}
 		}
 	}
 
