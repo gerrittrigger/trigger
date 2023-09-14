@@ -86,7 +86,7 @@ spec:
       - commentAdded:
           verdictCategory: "Code-Review"
           value: "+1"
-        CommentAddedContainsRegularExpression:
+        commentAddedContainsRegularExpression:
           value: "merged.*"
         commitMessage: "message.*"
         name: "patchset-created"

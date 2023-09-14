@@ -78,12 +78,8 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 		if !f.eventName(ctx, &cfg[i], event) {
 			continue
 		}
-		if !f.eventPatchsetExcludeDrafts(ctx, &cfg[i], event) &&
-			!f.eventPatchsetExcludeNoCodeChange(ctx, &cfg[i], event) &&
-			!f.eventPatchsetExcludePrivateChanges(ctx, &cfg[i], event) &&
-			!f.eventPatchsetExcludeTrivialRebase(ctx, &cfg[i], event) &&
-			!f.eventPatchsetExcludeWIPChanges(ctx, &cfg[i], event) &&
-			f.eventCommitMessage(ctx, &cfg[i], event) &&
+		if f.eventCommitMessage(ctx, &cfg[i], event) &&
+			f.eventPatchsetCreated(ctx, &cfg[i], event) &&
 			f.eventUploaderName(ctx, &cfg[i], event) {
 			m = true
 			break
@@ -121,6 +117,20 @@ func (f *filter) eventCommitMessage(_ context.Context, cfg *config.Event, event 
 	}
 
 	m, _ := regexp.MatchString(cfg.CommitMessage, event.Change.CommitMessage)
+
+	return m
+}
+
+func (f *filter) eventPatchsetCreated(ctx context.Context, cfg *config.Event, event *events.Event) bool {
+	m := false
+
+	if !f.eventPatchsetExcludeDrafts(ctx, cfg, event) &&
+		!f.eventPatchsetExcludeNoCodeChange(ctx, cfg, event) &&
+		!f.eventPatchsetExcludePrivateChanges(ctx, cfg, event) &&
+		!f.eventPatchsetExcludeTrivialRebase(ctx, cfg, event) &&
+		!f.eventPatchsetExcludeWIPChanges(ctx, cfg, event) {
+		m = true
+	}
 
 	return m
 }
