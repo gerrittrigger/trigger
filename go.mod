@@ -1,6 +1,6 @@
 module github.com/gerrittrigger/trigger
 
-go 1.18
+go 1.19
 
 require (
 	github.com/gerrittrigger/go-antpath v0.0.0-20190410160343-784165d119ee

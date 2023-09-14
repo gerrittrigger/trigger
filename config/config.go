@@ -56,14 +56,29 @@ type Trigger struct {
 }
 
 type Event struct {
-	CommitMessage         string `yaml:"commitMessage"`
-	ExcludeDrafts         bool   `yaml:"excludeDrafts"`
-	ExcludeTrivialRebase  bool   `yaml:"excludeTrivialRebase"`
-	ExcludeNoCodeChange   bool   `yaml:"excludeNoCodeChange"`
-	ExcludePrivateChanges bool   `yaml:"excludePrivateChanges"`
-	ExcludeWIPChanges     bool   `yaml:"excludeWIPChanges"`
-	Name                  string `yaml:"name"`
-	UploaderName          string `yaml:"uploaderName"`
+	CommentAdded                          CommentAdded                          `yaml:"commentAdded"`
+	CommentAddedContainsRegularExpression CommentAddedContainsRegularExpression `yaml:"commentAddedContainsRegularExpression"`
+	CommitMessage                         string                                `yaml:"commitMessage"`
+	Name                                  string                                `yaml:"name"`
+	PatchsetCreated                       PatchsetCreated                       `yaml:"patchsetCreated"`
+	UploaderName                          string                                `yaml:"uploaderName"`
+}
+
+type CommentAdded struct {
+	VerdictCategory string `yaml:"verdictCategory"`
+	Value           string `yaml:"value"`
+}
+
+type CommentAddedContainsRegularExpression struct {
+	Value string `yaml:"value"`
+}
+
+type PatchsetCreated struct {
+	ExcludeDrafts         bool `yaml:"excludeDrafts"`
+	ExcludeTrivialRebase  bool `yaml:"excludeTrivialRebase"`
+	ExcludeNoCodeChange   bool `yaml:"excludeNoCodeChange"`
+	ExcludePrivateChanges bool `yaml:"excludePrivateChanges"`
+	ExcludeWIPChanges     bool `yaml:"excludeWIPChanges"`
 }
 
 type Project struct {

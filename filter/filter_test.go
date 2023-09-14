@@ -39,14 +39,23 @@ func TestFilterEvents(t *testing.T) {
 
 	cfg = []config.Event{
 		{
-			CommitMessage:         "",
-			ExcludeDrafts:         false,
-			ExcludeNoCodeChange:   false,
-			ExcludePrivateChanges: false,
-			ExcludeTrivialRebase:  false,
-			ExcludeWIPChanges:     false,
-			Name:                  "",
-			UploaderName:          "",
+			CommentAdded: config.CommentAdded{
+				VerdictCategory: "",
+				Value:           "",
+			},
+			CommentAddedContainsRegularExpression: config.CommentAddedContainsRegularExpression{
+				Value: "",
+			},
+			CommitMessage: "",
+			Name:          "",
+			PatchsetCreated: config.PatchsetCreated{
+				ExcludeDrafts:         false,
+				ExcludeNoCodeChange:   false,
+				ExcludePrivateChanges: false,
+				ExcludeTrivialRebase:  false,
+				ExcludeWIPChanges:     false,
+			},
+			UploaderName: "",
 		},
 	}
 
@@ -75,14 +84,23 @@ func TestFilterEvents(t *testing.T) {
 
 	cfg = []config.Event{
 		{
-			CommitMessage:         "",
-			ExcludeDrafts:         false,
-			ExcludeNoCodeChange:   false,
-			ExcludePrivateChanges: false,
-			ExcludeTrivialRebase:  false,
-			ExcludeWIPChanges:     false,
-			Name:                  events.EVENTS_PATCHSET_CREATED,
-			UploaderName:          "",
+			CommentAdded: config.CommentAdded{
+				VerdictCategory: "",
+				Value:           "",
+			},
+			CommentAddedContainsRegularExpression: config.CommentAddedContainsRegularExpression{
+				Value: "",
+			},
+			CommitMessage: "",
+			Name:          events.EVENTS_PATCHSET_CREATED,
+			PatchsetCreated: config.PatchsetCreated{
+				ExcludeDrafts:         false,
+				ExcludeNoCodeChange:   false,
+				ExcludePrivateChanges: false,
+				ExcludeTrivialRebase:  false,
+				ExcludeWIPChanges:     false,
+			},
+			UploaderName: "",
 		},
 	}
 
@@ -111,14 +129,23 @@ func TestFilterEvents(t *testing.T) {
 
 	cfg = []config.Event{
 		{
-			CommitMessage:         "Init*",
-			ExcludeDrafts:         false,
-			ExcludeNoCodeChange:   false,
-			ExcludePrivateChanges: false,
-			ExcludeTrivialRebase:  false,
-			ExcludeWIPChanges:     false,
-			Name:                  events.EVENTS_PATCHSET_CREATED,
-			UploaderName:          "ad*",
+			CommentAdded: config.CommentAdded{
+				VerdictCategory: "",
+				Value:           "",
+			},
+			CommentAddedContainsRegularExpression: config.CommentAddedContainsRegularExpression{
+				Value: "",
+			},
+			CommitMessage: "Init*",
+			Name:          events.EVENTS_PATCHSET_CREATED,
+			PatchsetCreated: config.PatchsetCreated{
+				ExcludeDrafts:         false,
+				ExcludeNoCodeChange:   false,
+				ExcludePrivateChanges: false,
+				ExcludeTrivialRebase:  false,
+				ExcludeWIPChanges:     false,
+			},
+			UploaderName: "ad*",
 		},
 	}
 
@@ -147,14 +174,23 @@ func TestFilterEvents(t *testing.T) {
 
 	cfg = []config.Event{
 		{
-			CommitMessage:         "Init*",
-			ExcludeDrafts:         true,
-			ExcludeNoCodeChange:   true,
-			ExcludePrivateChanges: true,
-			ExcludeTrivialRebase:  true,
-			ExcludeWIPChanges:     true,
-			Name:                  events.EVENTS_PATCHSET_CREATED,
-			UploaderName:          "ad*",
+			CommentAdded: config.CommentAdded{
+				VerdictCategory: "",
+				Value:           "",
+			},
+			CommentAddedContainsRegularExpression: config.CommentAddedContainsRegularExpression{
+				Value: "",
+			},
+			CommitMessage: "Init*",
+			Name:          events.EVENTS_PATCHSET_CREATED,
+			PatchsetCreated: config.PatchsetCreated{
+				ExcludeDrafts:         true,
+				ExcludeNoCodeChange:   true,
+				ExcludePrivateChanges: true,
+				ExcludeTrivialRebase:  true,
+				ExcludeWIPChanges:     true,
+			},
+			UploaderName: "ad*",
 		},
 	}
 
@@ -338,11 +374,17 @@ func TestEventExcludeDrafts(t *testing.T) {
 	cfg := config.Event{}
 	event := events.Event{}
 
-	b := f.eventExcludeDrafts(ctx, &cfg, &event)
+	b := f.eventPatchsetExcludeDrafts(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		ExcludeDrafts: true,
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         true,
+			ExcludeNoCodeChange:   false,
+			ExcludePrivateChanges: false,
+			ExcludeTrivialRebase:  false,
+			ExcludeWIPChanges:     false,
+		},
 	}
 
 	event = events.Event{
@@ -354,7 +396,7 @@ func TestEventExcludeDrafts(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeDrafts(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeDrafts(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	event = events.Event{
@@ -366,7 +408,7 @@ func TestEventExcludeDrafts(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeDrafts(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeDrafts(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 
 	event = events.Event{
@@ -378,7 +420,7 @@ func TestEventExcludeDrafts(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeDrafts(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeDrafts(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -389,11 +431,17 @@ func TestEventExcludeTrivialRebase(t *testing.T) {
 	cfg := config.Event{}
 	event := events.Event{}
 
-	b := f.eventExcludeTrivialRebase(ctx, &cfg, &event)
+	b := f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		ExcludeTrivialRebase: true,
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         false,
+			ExcludeNoCodeChange:   false,
+			ExcludePrivateChanges: false,
+			ExcludeTrivialRebase:  true,
+			ExcludeWIPChanges:     false,
+		},
 	}
 
 	event = events.Event{
@@ -402,7 +450,7 @@ func TestEventExcludeTrivialRebase(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeTrivialRebase(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	event = events.Event{
@@ -411,7 +459,7 @@ func TestEventExcludeTrivialRebase(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeTrivialRebase(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -422,11 +470,17 @@ func TestEventExcludeNoCodeChange(t *testing.T) {
 	cfg := config.Event{}
 	event := events.Event{}
 
-	b := f.eventExcludeNoCodeChange(ctx, &cfg, &event)
+	b := f.eventPatchsetExcludeNoCodeChange(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		ExcludeNoCodeChange: true,
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         false,
+			ExcludeNoCodeChange:   true,
+			ExcludePrivateChanges: false,
+			ExcludeTrivialRebase:  false,
+			ExcludeWIPChanges:     false,
+		},
 	}
 
 	event = events.Event{
@@ -435,7 +489,7 @@ func TestEventExcludeNoCodeChange(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeNoCodeChange(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeNoCodeChange(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	event = events.Event{
@@ -444,7 +498,7 @@ func TestEventExcludeNoCodeChange(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeNoCodeChange(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeNoCodeChange(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -455,11 +509,17 @@ func TestEventExcludePrivateChanges(t *testing.T) {
 	cfg := config.Event{}
 	event := events.Event{}
 
-	b := f.eventExcludePrivateChanges(ctx, &cfg, &event)
+	b := f.eventPatchsetExcludePrivateChanges(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		ExcludePrivateChanges: true,
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         false,
+			ExcludeNoCodeChange:   false,
+			ExcludePrivateChanges: true,
+			ExcludeTrivialRebase:  false,
+			ExcludeWIPChanges:     false,
+		},
 	}
 
 	event = events.Event{
@@ -468,7 +528,7 @@ func TestEventExcludePrivateChanges(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludePrivateChanges(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludePrivateChanges(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	event = events.Event{
@@ -477,7 +537,7 @@ func TestEventExcludePrivateChanges(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludePrivateChanges(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludePrivateChanges(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -488,11 +548,17 @@ func TestEventExcludeWIPChanges(t *testing.T) {
 	cfg := config.Event{}
 	event := events.Event{}
 
-	b := f.eventExcludeWIPChanges(ctx, &cfg, &event)
+	b := f.eventPatchsetExcludeWIPChanges(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		ExcludeWIPChanges: true,
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         false,
+			ExcludeNoCodeChange:   false,
+			ExcludePrivateChanges: false,
+			ExcludeTrivialRebase:  false,
+			ExcludeWIPChanges:     true,
+		},
 	}
 
 	event = events.Event{
@@ -501,7 +567,7 @@ func TestEventExcludeWIPChanges(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeWIPChanges(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeWIPChanges(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
 	event = events.Event{
@@ -510,7 +576,7 @@ func TestEventExcludeWIPChanges(t *testing.T) {
 		},
 	}
 
-	b = f.eventExcludeWIPChanges(ctx, &cfg, &event)
+	b = f.eventPatchsetExcludeWIPChanges(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 

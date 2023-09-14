@@ -78,11 +78,11 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 		if !f.eventName(ctx, &cfg[i], event) {
 			continue
 		}
-		if !f.eventExcludeDrafts(ctx, &cfg[i], event) &&
-			!f.eventExcludeNoCodeChange(ctx, &cfg[i], event) &&
-			!f.eventExcludePrivateChanges(ctx, &cfg[i], event) &&
-			!f.eventExcludeTrivialRebase(ctx, &cfg[i], event) &&
-			!f.eventExcludeWIPChanges(ctx, &cfg[i], event) &&
+		if !f.eventPatchsetExcludeDrafts(ctx, &cfg[i], event) &&
+			!f.eventPatchsetExcludeNoCodeChange(ctx, &cfg[i], event) &&
+			!f.eventPatchsetExcludePrivateChanges(ctx, &cfg[i], event) &&
+			!f.eventPatchsetExcludeTrivialRebase(ctx, &cfg[i], event) &&
+			!f.eventPatchsetExcludeWIPChanges(ctx, &cfg[i], event) &&
 			f.eventCommitMessage(ctx, &cfg[i], event) &&
 			f.eventUploaderName(ctx, &cfg[i], event) {
 			m = true
@@ -125,54 +125,54 @@ func (f *filter) eventCommitMessage(_ context.Context, cfg *config.Event, event 
 	return m
 }
 
-func (f *filter) eventExcludeDrafts(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventExcludeDrafts")
+func (f *filter) eventPatchsetExcludeDrafts(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventPatchsetExcludeDrafts")
 
 	if event.Change.Status != "DRAFT" && !event.PatchSet.IsDraft {
 		return false
 	}
 
-	return cfg.ExcludeDrafts
+	return cfg.PatchsetCreated.ExcludeDrafts
 }
 
-func (f *filter) eventExcludeNoCodeChange(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventExcludeNoCodeChange")
+func (f *filter) eventPatchsetExcludeNoCodeChange(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventPatchsetExcludeNoCodeChange")
 
 	if event.PatchSet.Kind != "NO_CODE_CHANGE" {
 		return false
 	}
 
-	return cfg.ExcludeNoCodeChange
+	return cfg.PatchsetCreated.ExcludeNoCodeChange
 }
 
-func (f *filter) eventExcludePrivateChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventExcludePrivateChanges")
+func (f *filter) eventPatchsetExcludePrivateChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventPatchsetExcludePrivateChanges")
 
 	if !event.Change.Private {
 		return false
 	}
 
-	return cfg.ExcludePrivateChanges
+	return cfg.PatchsetCreated.ExcludePrivateChanges
 }
 
-func (f *filter) eventExcludeTrivialRebase(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventExcludeTrivialRebase")
+func (f *filter) eventPatchsetExcludeTrivialRebase(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventPatchsetExcludeTrivialRebase")
 
 	if event.PatchSet.Kind != "TRIVIAL_REBASE" {
 		return false
 	}
 
-	return cfg.ExcludeTrivialRebase
+	return cfg.PatchsetCreated.ExcludeTrivialRebase
 }
 
-func (f *filter) eventExcludeWIPChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventExcludeWIPChanges")
+func (f *filter) eventPatchsetExcludeWIPChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventPatchsetExcludeWIPChanges")
 
 	if !event.Change.WIP {
 		return false
 	}
 
-	return cfg.ExcludeWIPChanges
+	return cfg.PatchsetCreated.ExcludeWIPChanges
 }
 
 func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.Event) bool {

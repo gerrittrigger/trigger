@@ -49,7 +49,6 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - depguard
     - dogsled
     - errcheck
     - exportloopref
@@ -73,6 +72,7 @@ linters:
 
   # don't enable:
   # - deadcode
+  # - depguard
   # - dupl
   # - gochecknoglobals
   # - gocognit
