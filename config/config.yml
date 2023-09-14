@@ -19,14 +19,20 @@ spec:
     eventsApi: http://localhost:8081/events
   trigger:
     events:
-      - commitMessage: "message.*"
-        excludeDrafts: false
-        excludeTrivialRebase: false
-        excludeNoCodeChange: false
-        excludePrivateChanges: false
-        excludeWIPChanges: false
-        name: patchset-created
-        uploaderName: ""
+      - commentAdded:
+          verdictCategory: "Code-Review"
+          value: "+1"
+        CommentAddedContainsRegularExpression:
+          value: "merged.*"
+        commitMessage: "message.*"
+        name: "patchset-created"
+        patchsetCreated:
+          excludeDrafts: false
+          excludeTrivialRebase: false
+          excludeNoCodeChange: false
+          excludePrivateChanges: false
+          excludeWIPChanges: false
+        uploaderName: "name"
     projects:
       - branches:
           - pattern: main
