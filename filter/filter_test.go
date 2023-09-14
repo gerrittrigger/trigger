@@ -334,6 +334,14 @@ func TestFilterProjects(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
+func TestEventCommentAdded(t *testing.T) {
+	// TODO: FIXME
+}
+
+func TestEventCommentAddedContainsRegularExpression(t *testing.T) {
+	// TODO: FIXME
+}
+
 func TestEventCommitMessage(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
@@ -367,7 +375,7 @@ func TestEventCommitMessage(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventExcludeDrafts(t *testing.T) {
+func TestEventPatchsetExcludeDrafts(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
 
@@ -424,7 +432,7 @@ func TestEventExcludeDrafts(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventExcludeTrivialRebase(t *testing.T) {
+func TestEventPatchsetExcludeTrivialRebase(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
 
@@ -463,7 +471,7 @@ func TestEventExcludeTrivialRebase(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventExcludeNoCodeChange(t *testing.T) {
+func TestEventPatchsetExcludeNoCodeChange(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
 
@@ -502,7 +510,7 @@ func TestEventExcludeNoCodeChange(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventExcludePrivateChanges(t *testing.T) {
+func TestEventPatchsetExcludePrivateChanges(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
 
@@ -541,7 +549,7 @@ func TestEventExcludePrivateChanges(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventExcludeWIPChanges(t *testing.T) {
+func TestEventPatchsetExcludeWIPChanges(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
 

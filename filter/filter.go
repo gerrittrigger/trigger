@@ -78,7 +78,9 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 		if !f.eventName(ctx, &cfg[i], event) {
 			continue
 		}
-		if f.eventCommitMessage(ctx, &cfg[i], event) &&
+		if f.eventCommentAdded(ctx, &cfg[i], event) &&
+			f.eventCommentAddedContainsRegularExpression(ctx, &cfg[i], event) &&
+			f.eventCommitMessage(ctx, &cfg[i], event) &&
 			f.eventPatchsetCreated(ctx, &cfg[i], event) &&
 			f.eventUploaderName(ctx, &cfg[i], event) {
 			m = true
@@ -107,6 +109,30 @@ func (f *filter) filterProjects(ctx context.Context, cfg []config.Project, event
 	}
 
 	return m
+}
+
+func (f *filter) eventCommentAdded(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventCommentAdded")
+
+	if cfg.CommentAdded.VerdictCategory == "" || cfg.CommentAdded.Value == "" {
+		return true
+	}
+
+	// TODO: FIXME
+
+	return false
+}
+
+func (f *filter) eventCommentAddedContainsRegularExpression(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventCommentAddedContainsRegularExpression")
+
+	if cfg.CommentAddedContainsRegularExpression.Value == "" {
+		return true
+	}
+
+	// TODO: FIXME
+
+	return false
 }
 
 func (f *filter) eventCommitMessage(_ context.Context, cfg *config.Event, event *events.Event) bool {
