@@ -218,7 +218,7 @@ func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.E
 		return false
 	}
 
-	return cfg.Name == event.Type
+	return f.eventMatch(event.Type, cfg.Name)
 }
 
 func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *events.Event) bool {
@@ -237,6 +237,15 @@ func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *
 	}
 
 	return false
+}
+
+func (f *filter) eventMatch(match, data string) bool {
+	f.cfg.Logger.Debug("filter: eventMatch")
+
+	// e.g., "Patchset Created" replaced with "patchset-created"
+	d := strings.Replace(strings.ToLower(data), " ", "-", -1)
+
+	return match == d
 }
 
 func (f *filter) projectBranches(_ context.Context, cfg *config.Project, event *events.Event) bool {

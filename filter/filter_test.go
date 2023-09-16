@@ -665,6 +665,26 @@ func TestEventUploaderName(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
+func TestEventMatch(t *testing.T) {
+	f := initFilter()
+
+	d := ""
+	m := events.EVENTS_PATCHSET_CREATED
+
+	b := f.eventMatch(m, d)
+	assert.Equal(t, false, b)
+
+	d = "PatchsetCreated"
+
+	b = f.eventMatch(m, d)
+	assert.Equal(t, false, b)
+
+	d = "Patchset Created"
+
+	b = f.eventMatch(m, d)
+	assert.Equal(t, true, b)
+}
+
 func TestProjectBranches(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
