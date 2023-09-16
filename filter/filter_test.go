@@ -679,6 +679,11 @@ func TestEventMatch(t *testing.T) {
 	b = f.eventMatch(m, d)
 	assert.Equal(t, false, b)
 
+	d = events.EVENTS_PATCHSET_CREATED
+
+	b = f.eventMatch(m, d)
+	assert.Equal(t, true, b)
+
 	d = "Patchset Created"
 
 	b = f.eventMatch(m, d)
