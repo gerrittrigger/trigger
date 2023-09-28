@@ -334,12 +334,161 @@ func TestFilterProjects(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
+func TestEventName(t *testing.T) {
+	f := initFilter()
+	ctx := context.Background()
+
+	cfg := config.Event{}
+	event := events.Event{}
+
+	b := f.eventName(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	cfg = config.Event{
+		Name: events.EVENTS_PATCHSET_CREATED,
+	}
+
+	event = events.Event{
+		Type: "invalid",
+	}
+
+	b = f.eventName(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	cfg = config.Event{
+		Name: events.EVENTS_PATCHSET_CREATED,
+	}
+
+	event = events.Event{
+		Type: events.EVENTS_PATCHSET_CREATED,
+	}
+
+	b = f.eventName(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
+}
+
+func TestEventMatch(t *testing.T) {
+	f := initFilter()
+
+	d := ""
+	m := events.EVENTS_PATCHSET_CREATED
+
+	b := f.eventMatch(d, m)
+	assert.Equal(t, false, b)
+
+	d = "PatchsetCreated"
+
+	b = f.eventMatch(d, m)
+	assert.Equal(t, false, b)
+
+	d = events.EVENTS_PATCHSET_CREATED
+
+	b = f.eventMatch(d, m)
+	assert.Equal(t, true, b)
+
+	d = "Patchset Created"
+
+	b = f.eventMatch(d, m)
+	assert.Equal(t, true, b)
+}
+
 func TestEventCommentAdded(t *testing.T) {
-	// TODO: FIXME
+	f := initFilter()
+	ctx := context.Background()
+
+	cfg := config.Event{}
+	event := events.Event{}
+
+	b := f.eventCommentAdded(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	cfg = config.Event{
+		CommentAdded: config.CommentAdded{
+			VerdictCategory: "Verified",
+			Value:           "1",
+		},
+	}
+
+	event = events.Event{
+		Approvals: []events.Approval{
+			{
+				Type:  "Code Review",
+				Value: "-1",
+			},
+		},
+	}
+
+	b = f.eventCommentAdded(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	event = events.Event{
+		Approvals: []events.Approval{
+			{
+				Type:  "Verified",
+				Value: "-1",
+			},
+		},
+	}
+
+	b = f.eventCommentAdded(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	event = events.Event{
+		Approvals: []events.Approval{
+			{
+				Type:  "Verified",
+				Value: "1",
+			},
+		},
+	}
+
+	b = f.eventCommentAdded(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
 }
 
 func TestEventCommentAddedContainsRegularExpression(t *testing.T) {
-	// TODO: FIXME
+	f := initFilter()
+	ctx := context.Background()
+
+	cfg := config.Event{}
+	event := events.Event{}
+
+	b := f.eventCommentAddedContainsRegularExpression(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
+
+	cfg = config.Event{
+		CommentAddedContainsRegularExpression: config.CommentAddedContainsRegularExpression{
+			Value: "Code-Review",
+		},
+	}
+
+	event = events.Event{
+		Comment: "Verified",
+	}
+
+	b = f.eventCommentAddedContainsRegularExpression(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	event = events.Event{
+		Comment: "Code-Review+2",
+	}
+
+	b = f.eventCommentAddedContainsRegularExpression(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
+
+	event = events.Event{
+		Comment: "-Code-Review",
+	}
+
+	b = f.eventCommentAddedContainsRegularExpression(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
+
+	event = events.Event{
+		Comment: "Code-Review-1",
+	}
+
+	b = f.eventCommentAddedContainsRegularExpression(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
 }
 
 func TestEventCommitMessage(t *testing.T) {
@@ -432,45 +581,6 @@ func TestEventPatchsetExcludeDrafts(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventPatchsetExcludeTrivialRebase(t *testing.T) {
-	f := initFilter()
-	ctx := context.Background()
-
-	cfg := config.Event{}
-	event := events.Event{}
-
-	b := f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
-	assert.Equal(t, false, b)
-
-	cfg = config.Event{
-		PatchsetCreated: config.PatchsetCreated{
-			ExcludeDrafts:         false,
-			ExcludeNoCodeChange:   false,
-			ExcludePrivateChanges: false,
-			ExcludeTrivialRebase:  true,
-			ExcludeWIPChanges:     false,
-		},
-	}
-
-	event = events.Event{
-		PatchSet: events.PatchSet{
-			Kind: "invalid",
-		},
-	}
-
-	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
-	assert.Equal(t, false, b)
-
-	event = events.Event{
-		PatchSet: events.PatchSet{
-			Kind: "TRIVIAL_REBASE",
-		},
-	}
-
-	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
-	assert.Equal(t, true, b)
-}
-
 func TestEventPatchsetExcludeNoCodeChange(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
@@ -549,6 +659,45 @@ func TestEventPatchsetExcludePrivateChanges(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
+func TestEventPatchsetExcludeTrivialRebase(t *testing.T) {
+	f := initFilter()
+	ctx := context.Background()
+
+	cfg := config.Event{}
+	event := events.Event{}
+
+	b := f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	cfg = config.Event{
+		PatchsetCreated: config.PatchsetCreated{
+			ExcludeDrafts:         false,
+			ExcludeNoCodeChange:   false,
+			ExcludePrivateChanges: false,
+			ExcludeTrivialRebase:  true,
+			ExcludeWIPChanges:     false,
+		},
+	}
+
+	event = events.Event{
+		PatchSet: events.PatchSet{
+			Kind: "invalid",
+		},
+	}
+
+	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
+	assert.Equal(t, false, b)
+
+	event = events.Event{
+		PatchSet: events.PatchSet{
+			Kind: "TRIVIAL_REBASE",
+		},
+	}
+
+	b = f.eventPatchsetExcludeTrivialRebase(ctx, &cfg, &event)
+	assert.Equal(t, true, b)
+}
+
 func TestEventPatchsetExcludeWIPChanges(t *testing.T) {
 	f := initFilter()
 	ctx := context.Background()
@@ -585,39 +734,6 @@ func TestEventPatchsetExcludeWIPChanges(t *testing.T) {
 	}
 
 	b = f.eventPatchsetExcludeWIPChanges(ctx, &cfg, &event)
-	assert.Equal(t, true, b)
-}
-
-func TestEventName(t *testing.T) {
-	f := initFilter()
-	ctx := context.Background()
-
-	cfg := config.Event{}
-	event := events.Event{}
-
-	b := f.eventName(ctx, &cfg, &event)
-	assert.Equal(t, false, b)
-
-	cfg = config.Event{
-		Name: events.EVENTS_PATCHSET_CREATED,
-	}
-
-	event = events.Event{
-		Type: "invalid",
-	}
-
-	b = f.eventName(ctx, &cfg, &event)
-	assert.Equal(t, false, b)
-
-	cfg = config.Event{
-		Name: events.EVENTS_PATCHSET_CREATED,
-	}
-
-	event = events.Event{
-		Type: events.EVENTS_PATCHSET_CREATED,
-	}
-
-	b = f.eventName(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -665,28 +781,29 @@ func TestEventUploaderName(t *testing.T) {
 	assert.Equal(t, true, b)
 }
 
-func TestEventMatch(t *testing.T) {
+func TestProjectRepo(t *testing.T) {
 	f := initFilter()
+	ctx := context.Background()
 
-	d := ""
-	m := events.EVENTS_PATCHSET_CREATED
+	cfg := config.Project{
+		Repo: config.Match{
+			Pattern: "test",
+			Type:    matchPlain,
+		},
+	}
 
-	b := f.eventMatch(m, d)
+	event := events.Event{
+		Project: "invalid",
+	}
+
+	b := f.projectRepo(ctx, &cfg, &event)
 	assert.Equal(t, false, b)
 
-	d = "PatchsetCreated"
+	event = events.Event{
+		Project: "test",
+	}
 
-	b = f.eventMatch(m, d)
-	assert.Equal(t, false, b)
-
-	d = events.EVENTS_PATCHSET_CREATED
-
-	b = f.eventMatch(m, d)
-	assert.Equal(t, true, b)
-
-	d = "Patchset Created"
-
-	b = f.eventMatch(m, d)
+	b = f.projectRepo(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 
@@ -817,32 +934,6 @@ func TestProjectForbiddenFilePaths(t *testing.T) {
 	}
 
 	b = f.projectForbiddenFilePaths(ctx, &cfg, &event)
-	assert.Equal(t, true, b)
-}
-
-func TestProjectRepo(t *testing.T) {
-	f := initFilter()
-	ctx := context.Background()
-
-	cfg := config.Project{
-		Repo: config.Match{
-			Pattern: "test",
-			Type:    matchPlain,
-		},
-	}
-
-	event := events.Event{
-		Project: "invalid",
-	}
-
-	b := f.projectRepo(ctx, &cfg, &event)
-	assert.Equal(t, false, b)
-
-	event = events.Event{
-		Project: "test",
-	}
-
-	b = f.projectRepo(ctx, &cfg, &event)
 	assert.Equal(t, true, b)
 }
 

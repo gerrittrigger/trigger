@@ -83,13 +83,14 @@ spec:
     eventsApi: http://localhost:8081/events
   trigger:
     events:
-      - commentAdded:
-          verdictCategory: "Code-Review"
-          value: "+1"
+      - name: "comment-added"
+        commentAdded:
+          verdictCategory: "Verified"
+          value: "1"
         commentAddedContainsRegularExpression:
-          value: "merged.*"
+          value: "Code-Review"
+      - name: "patchset-created"
         commitMessage: "message.*"
-        name: "patchset-created"
         patchsetCreated:
           excludeDrafts: false
           excludeTrivialRebase: false

@@ -78,13 +78,20 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 		if !f.eventName(ctx, &cfg[i], event) {
 			continue
 		}
-		if f.eventCommentAdded(ctx, &cfg[i], event) &&
-			f.eventCommentAddedContainsRegularExpression(ctx, &cfg[i], event) &&
-			f.eventCommitMessage(ctx, &cfg[i], event) &&
-			f.eventPatchsetCreated(ctx, &cfg[i], event) &&
-			f.eventUploaderName(ctx, &cfg[i], event) {
-			m = true
-			break
+		if event.Type == events.EVENTS_COMMENT_ADDED {
+			if f.eventCommentAdded(ctx, &cfg[i], event) || f.eventCommentAddedContainsRegularExpression(ctx, &cfg[i], event) {
+				m = true
+				break
+			}
+		} else if event.Type == events.EVENTS_PATCHSET_CREATED {
+			if f.eventCommitMessage(ctx, &cfg[i], event) &&
+				f.eventPatchsetCreated(ctx, &cfg[i], event) &&
+				f.eventUploaderName(ctx, &cfg[i], event) {
+				m = true
+				break
+			}
+		} else {
+			// TODO: FIXME
 		}
 	}
 
@@ -111,16 +118,42 @@ func (f *filter) filterProjects(ctx context.Context, cfg []config.Project, event
 	return m
 }
 
+func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: eventName")
+
+	if cfg.Name == "" {
+		return false
+	}
+
+	return f.eventMatch(cfg.Name, event.Type)
+}
+
+func (f *filter) eventMatch(data, match string) bool {
+	f.cfg.Logger.Debug("filter: eventMatch")
+
+	// e.g., "Patchset Created" replaced with "patchset-created"
+	d := strings.Replace(strings.ToLower(data), " ", "-", -1)
+
+	return d == match
+}
+
 func (f *filter) eventCommentAdded(_ context.Context, cfg *config.Event, event *events.Event) bool {
 	f.cfg.Logger.Debug("filter: eventCommentAdded")
 
 	if cfg.CommentAdded.VerdictCategory == "" || cfg.CommentAdded.Value == "" {
-		return true
+		return false
 	}
 
-	// TODO: FIXME
+	m := false
 
-	return false
+	for _, item := range event.Approvals {
+		if (item.Type == cfg.CommentAdded.VerdictCategory) && (item.Value == cfg.CommentAdded.Value) {
+			m = true
+			break
+		}
+	}
+
+	return m
 }
 
 func (f *filter) eventCommentAddedContainsRegularExpression(_ context.Context, cfg *config.Event, event *events.Event) bool {
@@ -130,9 +163,9 @@ func (f *filter) eventCommentAddedContainsRegularExpression(_ context.Context, c
 		return true
 	}
 
-	// TODO: FIXME
+	m, _ := regexp.MatchString(cfg.CommentAddedContainsRegularExpression.Value, event.Comment)
 
-	return false
+	return m
 }
 
 func (f *filter) eventCommitMessage(_ context.Context, cfg *config.Event, event *events.Event) bool {
@@ -211,16 +244,6 @@ func (f *filter) eventPatchsetExcludeWIPChanges(_ context.Context, cfg *config.E
 	return cfg.PatchsetCreated.ExcludeWIPChanges
 }
 
-func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventName")
-
-	if cfg.Name == "" {
-		return false
-	}
-
-	return f.eventMatch(event.Type, cfg.Name)
-}
-
 func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *events.Event) bool {
 	f.cfg.Logger.Debug("filter: eventUploaderName")
 
@@ -239,13 +262,10 @@ func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *
 	return false
 }
 
-func (f *filter) eventMatch(match, data string) bool {
-	f.cfg.Logger.Debug("filter: eventMatch")
+func (f *filter) projectRepo(_ context.Context, cfg *config.Project, event *events.Event) bool {
+	f.cfg.Logger.Debug("filter: projectRepo")
 
-	// e.g., "Patchset Created" replaced with "patchset-created"
-	d := strings.Replace(strings.ToLower(data), " ", "-", -1)
-
-	return match == d
+	return f.projectMatch(cfg.Repo, event.Project)
 }
 
 func (f *filter) projectBranches(_ context.Context, cfg *config.Project, event *events.Event) bool {
@@ -325,12 +345,6 @@ func (f *filter) projectForbiddenFilePaths(_ context.Context, cfg *config.Projec
 	}
 
 	return m
-}
-
-func (f *filter) projectRepo(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectRepo")
-
-	return f.projectMatch(cfg.Repo, event.Project)
 }
 
 func (f *filter) projectTopics(_ context.Context, cfg *config.Project, event *events.Event) bool {
