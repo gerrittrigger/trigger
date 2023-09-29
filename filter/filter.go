@@ -91,7 +91,8 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 				break
 			}
 		} else {
-			// TODO: FIXME
+			m = true
+			break
 		}
 	}
 

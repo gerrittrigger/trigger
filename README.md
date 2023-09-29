@@ -134,17 +134,12 @@ change-abandoned
 change-merged
 change-restored
 comment-added
-draft-published
 hashtags-changed
-merge-failed
 patchset-created
-patchset-notified
 private-state-changed
 project-created
 ref-replicated
-ref-replicated-done
 ref-updated
-rerun-check
 reviewer-added
 topic-changed
 vote-deleted
