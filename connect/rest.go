@@ -15,6 +15,16 @@ import (
 )
 
 const (
+	CHANGES   = "/changes/"
+	DETAIL    = "/detail"
+	REVIEW    = "/review"
+	REVISIONS = "/revisions/"
+	VERSION   = "/config/server/version"
+
+	PREFIX = "/a"
+)
+
+const (
 	optionAccounts = "DETAILED_ACCOUNTS"
 	optionCommit   = "CURRENT_COMMIT"
 	optionRevision = "CURRENT_REVISION"
@@ -67,9 +77,9 @@ func (r *rest) Deinit(_ context.Context) error {
 func (r *rest) Detail(_ context.Context, change int) (map[string]any, error) {
 	r.cfg.Logger.Debug("rest: Detail")
 
-	url := r.url + "/changes/" + strconv.Itoa(change) + "/detail"
+	url := r.url + CHANGES + strconv.Itoa(change) + DETAIL
 	if r.user != "" && r.pass != "" {
-		url = r.url + "/a/changes/" + strconv.Itoa(change) + "/detail"
+		url = r.url + PREFIX + CHANGES + strconv.Itoa(change) + DETAIL
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
@@ -111,9 +121,9 @@ func (r *rest) Detail(_ context.Context, change int) (map[string]any, error) {
 func (r *rest) Query(_ context.Context, search string, start int) (map[string]any, error) {
 	r.cfg.Logger.Debug("rest: Query")
 
-	url := r.url + "/changes/"
+	url := r.url + CHANGES
 	if r.user != "" && r.pass != "" {
-		url = r.url + "/a/changes/"
+		url = r.url + PREFIX + CHANGES
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
@@ -169,9 +179,9 @@ func (r *rest) Query(_ context.Context, search string, start int) (map[string]an
 func (r *rest) Version(_ context.Context) (string, error) {
 	r.cfg.Logger.Debug("rest: Version")
 
-	url := r.url + "/config/server/version"
+	url := r.url + VERSION
 	if r.user != "" && r.pass != "" {
-		url = r.url + "/a/config/server/version"
+		url = r.url + PREFIX + VERSION
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
@@ -213,9 +223,9 @@ func (r *rest) Version(_ context.Context) (string, error) {
 func (r *rest) Vote(_ context.Context, change, revision int, label, message, vote string) error {
 	r.cfg.Logger.Debug("rest: Vote")
 
-	url := r.url + "/changes/" + strconv.Itoa(change) + "/revisions/" + strconv.Itoa(revision) + "/review"
+	url := r.url + CHANGES + strconv.Itoa(change) + REVISIONS + strconv.Itoa(revision) + REVIEW
 	if r.user != "" && r.pass != "" {
-		url = r.url + "/a/changes/" + strconv.Itoa(change) + "/revisions/" + strconv.Itoa(revision) + "/review"
+		url = r.url + PREFIX + CHANGES + strconv.Itoa(change) + REVISIONS + strconv.Itoa(revision) + REVIEW
 	}
 
 	buf := map[string]any{
