@@ -89,12 +89,12 @@ func TestFormatQuery(t *testing.T) {
 }
 
 func TestBuildEvent(t *testing.T) {
+	var b []httpResult
+
 	p := initPlayback()
 	ctx := context.Background()
 
 	_ = p.Init(ctx)
-
-	b := []httpResult{}
 
 	r, err := p.buildEvent(ctx, b)
 	assert.Equal(t, nil, err)

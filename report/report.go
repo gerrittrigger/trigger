@@ -83,25 +83,25 @@ func (r *report) Run(ctx context.Context, event *events.Event) (map[string]strin
 func (r *report) fetchChange(_ context.Context, event *events.Event, data map[string]string) (map[string]string, error) {
 	r.cfg.Logger.Debug("report: fetchChange")
 
-	data[params.PARAMS_GERRIT_BRANCH] = event.Change.Branch
-	data[params.PARAMS_GERRIT_CHANGE_COMMIT_MESSAGE] = base64.StdEncoding.EncodeToString([]byte(event.Change.CommitMessage))
-	data[params.PARAMS_GERRIT_CHANGE_ID] = event.Change.ID
-	data[params.PARAMS_GERRIT_CHANGE_NUMBER] = strconv.Itoa(event.Change.Number)
-	data[params.PARAMS_GERRIT_CHANGE_OWNER] = fmt.Sprintf(`%q <%s>`, event.Change.Owner.Name, event.Change.Owner.Email)
-	data[params.PARAMS_GERRIT_CHANGE_OWNER_EMAIL] = event.Change.Owner.Email
-	data[params.PARAMS_GERRIT_CHANGE_OWNER_NAME] = event.Change.Owner.Name
-	data[params.PARAMS_GERRIT_CHANGE_PRIVATE_STATE] = strconv.FormatBool(event.Change.Private)
-	data[params.PARAMS_GERRIT_CHANGE_SUBJECT] = event.Change.Subject
-	data[params.PARAMS_GERRIT_CHANGE_URL] = event.Change.URL
-	data[params.PARAMS_GERRIT_CHANGE_WIP_STATE] = strconv.FormatBool(event.Change.WIP)
-	data[params.PARAMS_GERRIT_PATCHSET_NUMBER] = strconv.Itoa(event.PatchSet.Number)
-	data[params.PARAMS_GERRIT_PATCHSET_REVISION] = event.PatchSet.Revision
-	data[params.PARAMS_GERRIT_PATCHSET_UPLOADER] = fmt.Sprintf(`%q <%s>`, event.PatchSet.Uploader.Name, event.PatchSet.Uploader.Email)
-	data[params.PARAMS_GERRIT_PATCHSET_UPLOADER_EMAIL] = event.PatchSet.Uploader.Email
-	data[params.PARAMS_GERRIT_PATCHSET_UPLOADER_NAME] = event.PatchSet.Uploader.Name
-	data[params.PARAMS_GERRIT_PROJECT] = event.Project
-	data[params.PARAMS_GERRIT_REFSPEC] = event.PatchSet.Ref
-	data[params.PARAMS_GERRIT_TOPIC] = event.Change.Topic
+	data[params.ParamsGerritBranch] = event.Change.Branch
+	data[params.ParamsGerritChangeCommitMessage] = base64.StdEncoding.EncodeToString([]byte(event.Change.CommitMessage))
+	data[params.ParamsGerritChangeId] = event.Change.ID
+	data[params.ParamsGerritChangeNumber] = strconv.Itoa(event.Change.Number)
+	data[params.ParamsGerritChangeOwner] = fmt.Sprintf(`%q <%s>`, event.Change.Owner.Name, event.Change.Owner.Email)
+	data[params.ParamsGerritChangeOwnerEmail] = event.Change.Owner.Email
+	data[params.ParamsGerritChangeOwnerName] = event.Change.Owner.Name
+	data[params.ParamsGerritChangePrivateState] = strconv.FormatBool(event.Change.Private)
+	data[params.ParamsGerritChangeSubject] = event.Change.Subject
+	data[params.ParamsGerritChangeUrl] = event.Change.URL
+	data[params.ParamsGerritChangeWipState] = strconv.FormatBool(event.Change.WIP)
+	data[params.ParamsGerritPatchsetNumber] = strconv.Itoa(event.PatchSet.Number)
+	data[params.ParamsGerritPatchsetRevision] = event.PatchSet.Revision
+	data[params.ParamsGerritPatchsetUploader] = fmt.Sprintf(`%q <%s>`, event.PatchSet.Uploader.Name, event.PatchSet.Uploader.Email)
+	data[params.ParamsGerritPatchsetUploaderEmail] = event.PatchSet.Uploader.Email
+	data[params.ParamsGerritPatchsetUploaderName] = event.PatchSet.Uploader.Name
+	data[params.ParamsGerritProject] = event.Project
+	data[params.ParamsGerritRefspec] = event.PatchSet.Ref
+	data[params.ParamsGerritTopic] = event.Change.Topic
 
 	return data, nil
 }
@@ -109,7 +109,7 @@ func (r *report) fetchChange(_ context.Context, event *events.Event, data map[st
 func (r *report) fetchEvent(_ context.Context, event *events.Event, data map[string]string) (map[string]string, error) {
 	r.cfg.Logger.Debug("report: fetchEvent")
 
-	data[params.PARAMS_GERRIT_EVENT_TYPE] = event.Type
+	data[params.ParamsGerritEventType] = event.Type
 
 	return data, nil
 }
@@ -117,10 +117,10 @@ func (r *report) fetchEvent(_ context.Context, event *events.Event, data map[str
 func (r *report) fetchGeneral(_ context.Context, data map[string]string) (map[string]string, error) {
 	r.cfg.Logger.Debug("report: fetchGeneral")
 
-	data[params.PARAMS_GERRIT_HOST] = r.cfg.Config.Spec.Connect.Hostname
-	data[params.PARAMS_GERRIT_NAME] = r.cfg.Config.Spec.Connect.Name
-	data[params.PARAMS_GERRIT_PORT] = port
-	data[params.PARAMS_GERRIT_SCHEME] = scheme
+	data[params.ParamsGerritHost] = r.cfg.Config.Spec.Connect.Hostname
+	data[params.ParamsGerritName] = r.cfg.Config.Spec.Connect.Name
+	data[params.ParamsGerritPort] = port
+	data[params.ParamsGerritScheme] = scheme
 
 	return data, nil
 }

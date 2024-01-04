@@ -92,7 +92,7 @@ func TestFilterEvents(t *testing.T) {
 				Value: "",
 			},
 			CommitMessage: "",
-			Name:          events.EVENTS_PATCHSET_CREATED,
+			Name:          events.EventsPatchsetCreated,
 			PatchsetCreated: config.PatchsetCreated{
 				ExcludeDrafts:         false,
 				ExcludeNoCodeChange:   false,
@@ -118,7 +118,7 @@ func TestFilterEvents(t *testing.T) {
 				Name: "",
 			},
 		},
-		Type: events.EVENTS_PATCHSET_CREATED,
+		Type: events.EventsPatchsetCreated,
 		Uploader: events.Account{
 			Name: "",
 		},
@@ -137,7 +137,7 @@ func TestFilterEvents(t *testing.T) {
 				Value: "",
 			},
 			CommitMessage: "Init*",
-			Name:          events.EVENTS_PATCHSET_CREATED,
+			Name:          events.EventsPatchsetCreated,
 			PatchsetCreated: config.PatchsetCreated{
 				ExcludeDrafts:         false,
 				ExcludeNoCodeChange:   false,
@@ -163,7 +163,7 @@ func TestFilterEvents(t *testing.T) {
 				Name: "admin",
 			},
 		},
-		Type: events.EVENTS_PATCHSET_CREATED,
+		Type: events.EventsPatchsetCreated,
 		Uploader: events.Account{
 			Name: "admin",
 		},
@@ -182,7 +182,7 @@ func TestFilterEvents(t *testing.T) {
 				Value: "",
 			},
 			CommitMessage: "Init*",
-			Name:          events.EVENTS_PATCHSET_CREATED,
+			Name:          events.EventsPatchsetCreated,
 			PatchsetCreated: config.PatchsetCreated{
 				ExcludeDrafts:         true,
 				ExcludeNoCodeChange:   true,
@@ -208,7 +208,7 @@ func TestFilterEvents(t *testing.T) {
 				Name: "admin",
 			},
 		},
-		Type: events.EVENTS_PATCHSET_CREATED,
+		Type: events.EventsPatchsetCreated,
 		Uploader: events.Account{
 			Name: "admin",
 		},
@@ -345,7 +345,7 @@ func TestEventName(t *testing.T) {
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		Name: events.EVENTS_PATCHSET_CREATED,
+		Name: events.EventsPatchsetCreated,
 	}
 
 	event = events.Event{
@@ -356,11 +356,11 @@ func TestEventName(t *testing.T) {
 	assert.Equal(t, false, b)
 
 	cfg = config.Event{
-		Name: events.EVENTS_PATCHSET_CREATED,
+		Name: events.EventsPatchsetCreated,
 	}
 
 	event = events.Event{
-		Type: events.EVENTS_PATCHSET_CREATED,
+		Type: events.EventsPatchsetCreated,
 	}
 
 	b = f.eventName(ctx, &cfg, &event)
@@ -371,7 +371,7 @@ func TestEventMatch(t *testing.T) {
 	f := initFilter()
 
 	d := ""
-	m := events.EVENTS_PATCHSET_CREATED
+	m := events.EventsPatchsetCreated
 
 	b := f.eventMatch(d, m)
 	assert.Equal(t, false, b)
@@ -381,7 +381,7 @@ func TestEventMatch(t *testing.T) {
 	b = f.eventMatch(d, m)
 	assert.Equal(t, false, b)
 
-	d = events.EVENTS_PATCHSET_CREATED
+	d = events.EventsPatchsetCreated
 
 	b = f.eventMatch(d, m)
 	assert.Equal(t, true, b)

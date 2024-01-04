@@ -16,7 +16,7 @@
 
 ## Prerequisites
 
-- Go >= 1.18.0
+- Go >= 1.21.0
 
 
 
@@ -130,17 +130,23 @@ spec:
 ## Events
 
 ```
+batch-ref-updated
 change-abandoned
+change-deleted
 change-merged
 change-restored
 comment-added
+commit-received
 hashtags-changed
 patchset-created
 private-state-changed
 project-created
+project-head-updated
+ref-received
 ref-replicated
 ref-updated
 reviewer-added
+reviewer-deleted
 topic-changed
 vote-deleted
 wip-state-changed

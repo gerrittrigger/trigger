@@ -78,12 +78,12 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 		if !f.eventName(ctx, &cfg[i], event) {
 			continue
 		}
-		if event.Type == events.EVENTS_COMMENT_ADDED {
+		if event.Type == events.EventsCommentAdded {
 			if f.eventCommentAdded(ctx, &cfg[i], event) || f.eventCommentAddedContainsRegularExpression(ctx, &cfg[i], event) {
 				m = true
 				break
 			}
-		} else if event.Type == events.EVENTS_PATCHSET_CREATED {
+		} else if event.Type == events.EventsPatchsetCreated {
 			if f.eventCommitMessage(ctx, &cfg[i], event) &&
 				f.eventPatchsetCreated(ctx, &cfg[i], event) &&
 				f.eventUploaderName(ctx, &cfg[i], event) {

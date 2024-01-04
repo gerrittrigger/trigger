@@ -43,13 +43,13 @@ func DefaultConfig() *Config {
 	return &Config{}
 }
 
-func (q *query) Init(ctx context.Context) error {
+func (q *query) Init(_ context.Context) error {
 	q.cfg.Logger.Debug("query: Init")
 
 	return nil
 }
 
-func (q *query) Deinit(ctx context.Context) error {
+func (q *query) Deinit(_ context.Context) error {
 	q.cfg.Logger.Debug("query: Deinit")
 
 	return nil
