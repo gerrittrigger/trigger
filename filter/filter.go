@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	eventSep    = "-"
 	matchPath   = "path"
 	matchPlain  = "plain"
 	matchRegExp = "regexp"
@@ -133,7 +134,7 @@ func (f *filter) eventMatch(data, match string) bool {
 	f.cfg.Logger.Debug("filter: eventMatch")
 
 	// e.g., "Patchset Created" replaced with "patchset-created"
-	d := strings.Replace(strings.ToLower(data), " ", "-", -1)
+	d := strings.Replace(strings.ToLower(data), " ", eventSep, -1)
 
 	return d == match
 }
