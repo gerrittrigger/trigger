@@ -26,12 +26,8 @@ linters-settings:
     local-prefixes: github.com/golangci/golangci-lint
   golint:
     min-confidence: 0
-  gomnd:
-    settings:
-      mnd:
-        checks: argument,case,condition,return
   govet:
-    check-shadowing: true
+    shadow: true
     settings:
       printf:
         funcs:
@@ -45,7 +41,8 @@ linters-settings:
     suggest-new: true
   misspell:
     locale: US
-
+  mnd:
+    checks: argument,case,condition,return
 linters:
   disable-all: true
   enable:
@@ -58,7 +55,7 @@ linters:
     - gocritic
     - gocyclo
     - gofmt
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - govet
@@ -69,7 +66,6 @@ linters:
     - typecheck
     - unconvert
     - whitespace
-
   # don't enable:
   # - deadcode
   # - depguard
@@ -86,8 +82,7 @@ linters:
   # - unparam
   # - unused
   # - varcheck
-
-run:
-  skip-dirs:
+issues:
+  exclude-dirs:
     - external
     - script
