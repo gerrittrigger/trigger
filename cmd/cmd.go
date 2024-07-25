@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v3"
 
 	"github.com/gerrittrigger/trigger/config"
