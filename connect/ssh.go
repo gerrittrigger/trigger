@@ -7,19 +7,19 @@ import (
 	"io"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
 	cryptoSsh "golang.org/x/crypto/ssh"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gerrittrigger/trigger/config"
 )
 
 const (
-	counter = 2
-	prefix  = "gerrit "
+	num    = -1
+	prefix = "gerrit "
 )
 
 type Ssh interface {
@@ -39,7 +39,6 @@ type ssh struct {
 	cfg          *SshConfig
 	client       *cryptoSsh.Client
 	clientConfig *cryptoSsh.ClientConfig
-	sessions     []*cryptoSsh.Session
 }
 
 func SshNew(_ context.Context, cfg *SshConfig) Ssh {
@@ -47,7 +46,6 @@ func SshNew(_ context.Context, cfg *SshConfig) Ssh {
 		cfg:          cfg,
 		client:       nil,
 		clientConfig: nil,
-		sessions:     []*cryptoSsh.Session{},
 	}
 }
 
@@ -106,13 +104,6 @@ func (s *ssh) Init(_ context.Context) error {
 func (s *ssh) Deinit(_ context.Context) error {
 	s.cfg.Logger.Debug("ssh: Deinit")
 
-	for i := range s.sessions {
-		if s.sessions[i] != nil {
-			_ = s.sessions[i].Close()
-			s.sessions[i] = nil
-		}
-	}
-
 	if s.client != nil {
 		_ = s.client.Close()
 		s.client = nil
@@ -163,11 +154,8 @@ func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 	return string(out), nil
 }
 
-func (s *ssh) Start(_ context.Context, cmd string, out chan string) error {
-	var wg sync.WaitGroup
-
+func (s *ssh) Start(ctx context.Context, cmd string, out chan string) error {
 	helper := func(r io.Reader) {
-		defer wg.Done()
 		scan := bufio.NewScanner(r)
 		scan.Split(bufio.ScanLines)
 		for scan.Scan() {
@@ -201,10 +189,18 @@ func (s *ssh) Start(_ context.Context, cmd string, out chan string) error {
 		return errors.Wrap(err, "failed to pipe stdout")
 	}
 
-	wg.Add(counter)
+	g, _ := errgroup.WithContext(ctx)
+	g.SetLimit(num)
 
-	go helper(stderr)
-	go helper(stdout)
+	g.Go(func() error {
+		helper(stderr)
+		return nil
+	})
+
+	g.Go(func() error {
+		helper(stdout)
+		return nil
+	})
 
 	if err := session.Start(prefix + cmd); err != nil {
 		if session != nil {
@@ -213,18 +209,11 @@ func (s *ssh) Start(_ context.Context, cmd string, out chan string) error {
 		return errors.Wrap(err, "failed to start session")
 	}
 
-	s.sessions = append(s.sessions, session)
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
+	g.Go(func() error {
 		_ = session.Wait()
-	}()
-
-	go func() {
-		wg.Wait()
-	}()
+		_ = session.Close()
+		return nil
+	})
 
 	return nil
 }
