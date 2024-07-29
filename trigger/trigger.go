@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
-	"sync"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gerrittrigger/trigger/config"
 	"github.com/gerrittrigger/trigger/connect"
@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	waitCount = 2
+	num = -1
 )
 
 type Trigger interface {
@@ -114,36 +114,30 @@ func (t *trigger) Deinit(ctx context.Context) error {
 func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []config.Project, param chan map[string]string) error {
 	t.cfg.Logger.Debug("trigger: Run")
 
-	var err error
-	var wg sync.WaitGroup
-
 	if t.pb {
-		if err = t.playbackEvent(ctx); err != nil {
+		if err := t.playbackEvent(ctx); err != nil {
 			return errors.Wrap(err, "failed to playback event")
 		}
 	}
 
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(num)
+
 	buf := make(chan string)
 
-	go func(c context.Context, b chan string) {
-		t.fetchEvent(c, b)
-	}(ctx, buf)
+	g.Go(func() error {
+		t.fetchEvent(ctx, buf)
+		return nil
+	})
 
-	wg.Add(waitCount)
-
-	go func(c context.Context, b chan string) {
-		defer wg.Done()
-		for item := range b {
-			err = t.cfg.Queue.Put(c, item)
-			if err != nil {
-				return
+	g.Go(func() error {
+		for item := range buf {
+			if err := t.cfg.Queue.Put(ctx, item); err != nil {
+				return err
 			}
 		}
-	}(ctx, buf)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to put queue")
-	}
+		return nil
+	})
 
 	if _events == nil || len(_events) == 0 {
 		_events = t.cfg.Config.Spec.Trigger.Events
@@ -153,17 +147,16 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 		projects = t.cfg.Config.Spec.Trigger.Projects
 	}
 
-	go func(ctx context.Context, _events []config.Event, projects []config.Project, param chan map[string]string) {
-		defer wg.Done()
-		err = t.postReport(ctx, _events, projects, param)
-		if err != nil {
-			return
-		}
-	}(ctx, _events, projects, param)
+	g.Go(func() error {
+		_ = t.postReport(ctx, _events, projects, param)
+		return nil
+	})
 
-	wg.Wait()
+	if err := g.Wait(); err != nil {
+		return errors.Wrap(err, "failed to wait")
+	}
 
-	return err
+	return nil
 }
 
 func (t *trigger) playbackEvent(ctx context.Context) error {
