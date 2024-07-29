@@ -122,8 +122,6 @@ func (s *ssh) Deinit(_ context.Context) error {
 }
 
 func (s *ssh) Reconnect(ctx context.Context) error {
-	s.cfg.Logger.Debug("ssh: Reconnect")
-
 	var err error
 
 	_ = s.Deinit(ctx)
@@ -141,8 +139,6 @@ func (s *ssh) Reconnect(ctx context.Context) error {
 }
 
 func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
-	s.cfg.Logger.Debug("ssh: Run")
-
 	if s.client == nil {
 		return "", errors.New("invalid client")
 	}
@@ -168,8 +164,6 @@ func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 }
 
 func (s *ssh) Start(_ context.Context, cmd string, out chan string) error {
-	s.cfg.Logger.Debug("ssh: Start")
-
 	var wg sync.WaitGroup
 
 	helper := func(r io.Reader) {

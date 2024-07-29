@@ -57,8 +57,6 @@ func (r *report) Deinit(_ context.Context) error {
 }
 
 func (r *report) Run(ctx context.Context, event *events.Event) (map[string]string, error) {
-	r.cfg.Logger.Debug("report: Run")
-
 	var err error
 	buf := map[string]string{}
 
@@ -81,8 +79,6 @@ func (r *report) Run(ctx context.Context, event *events.Event) (map[string]strin
 }
 
 func (r *report) fetchChange(_ context.Context, event *events.Event, data map[string]string) (map[string]string, error) {
-	r.cfg.Logger.Debug("report: fetchChange")
-
 	data[params.ParamsGerritBranch] = event.Change.Branch
 	data[params.ParamsGerritChangeCommitMessage] = base64.StdEncoding.EncodeToString([]byte(event.Change.CommitMessage))
 	data[params.ParamsGerritChangeId] = event.Change.ID
@@ -107,16 +103,12 @@ func (r *report) fetchChange(_ context.Context, event *events.Event, data map[st
 }
 
 func (r *report) fetchEvent(_ context.Context, event *events.Event, data map[string]string) (map[string]string, error) {
-	r.cfg.Logger.Debug("report: fetchEvent")
-
 	data[params.ParamsGerritEventType] = event.Type
 
 	return data, nil
 }
 
 func (r *report) fetchGeneral(_ context.Context, data map[string]string) (map[string]string, error) {
-	r.cfg.Logger.Debug("report: fetchGeneral")
-
 	data[params.ParamsGerritHost] = r.cfg.Config.Spec.Connect.Hostname
 	data[params.ParamsGerritName] = r.cfg.Config.Spec.Connect.Name
 	data[params.ParamsGerritPort] = port

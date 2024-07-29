@@ -54,8 +54,6 @@ func (w *watchdog) Deinit(_ context.Context) error {
 }
 
 func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, reconn, start chan bool) error {
-	w.cfg.Logger.Debug("watchdog: Run")
-
 	p := time.Duration(w.cfg.Config.Spec.Watchdog.PeriodSeconds)
 	t := time.Duration(w.cfg.Config.Spec.Watchdog.TimeoutSeconds)
 
@@ -79,8 +77,6 @@ func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, reconn, start chan 
 }
 
 func (w *watchdog) check(ctx context.Context, ssh connect.Ssh) error {
-	w.cfg.Logger.Debug("watchdog: check")
-
 	b, err := ssh.Run(ctx, "version")
 	if err != nil {
 		return errors.Wrap(err, "failed to run ssh")

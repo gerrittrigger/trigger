@@ -56,8 +56,6 @@ func (q *query) Deinit(_ context.Context) error {
 }
 
 func (q *query) Run(ctx context.Context, _ []config.Event, projects []config.Project, event *events.Event, ssh connect.Ssh) error {
-	q.cfg.Logger.Debug("query: Run")
-
 	if err := q.filePaths(ctx, projects, event, ssh); err != nil {
 		return errors.Wrap(err, "failed to query filePaths")
 	}
@@ -66,8 +64,6 @@ func (q *query) Run(ctx context.Context, _ []config.Event, projects []config.Pro
 }
 
 func (q *query) filePaths(ctx context.Context, projects []config.Project, event *events.Event, ssh connect.Ssh) error {
-	q.cfg.Logger.Debug("query: filePaths")
-
 	m := false
 
 	for i := range projects {
@@ -102,8 +98,6 @@ func (q *query) filePaths(ctx context.Context, projects []config.Project, event 
 }
 
 func (q *query) query(ctx context.Context, event *events.Event, ssh connect.Ssh) (string, error) {
-	q.cfg.Logger.Debug("query: query")
-
 	var param string
 
 	if event.PatchSet.Revision != "" {
@@ -127,8 +121,6 @@ func (q *query) query(ctx context.Context, event *events.Event, ssh connect.Ssh)
 }
 
 func (q *query) parse(_ context.Context, data string) (events.PatchSet, error) {
-	q.cfg.Logger.Debug("query: parse")
-
 	d := strings.Split(strings.Trim(data, "\n"), "\n")
 	if len(d) != queryCount {
 		return events.PatchSet{}, errors.New("invalid count")

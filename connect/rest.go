@@ -75,8 +75,6 @@ func (r *rest) Deinit(_ context.Context) error {
 }
 
 func (r *rest) Detail(_ context.Context, change int) (map[string]any, error) {
-	r.cfg.Logger.Debug("rest: Detail")
-
 	url := r.url + CHANGES + strconv.Itoa(change) + DETAIL
 	if r.user != "" && r.pass != "" {
 		url = r.url + PREFIX + CHANGES + strconv.Itoa(change) + DETAIL
@@ -119,8 +117,6 @@ func (r *rest) Detail(_ context.Context, change int) (map[string]any, error) {
 }
 
 func (r *rest) Query(_ context.Context, search string, start int) (map[string]any, error) {
-	r.cfg.Logger.Debug("rest: Query")
-
 	url := r.url + CHANGES
 	if r.user != "" && r.pass != "" {
 		url = r.url + PREFIX + CHANGES
@@ -177,8 +173,6 @@ func (r *rest) Query(_ context.Context, search string, start int) (map[string]an
 }
 
 func (r *rest) Version(_ context.Context) (string, error) {
-	r.cfg.Logger.Debug("rest: Version")
-
 	url := r.url + VERSION
 	if r.user != "" && r.pass != "" {
 		url = r.url + PREFIX + VERSION
@@ -221,8 +215,6 @@ func (r *rest) Version(_ context.Context) (string, error) {
 }
 
 func (r *rest) Vote(_ context.Context, change, revision int, label, message, vote string) error {
-	r.cfg.Logger.Debug("rest: Vote")
-
 	url := r.url + CHANGES + strconv.Itoa(change) + REVISIONS + strconv.Itoa(revision) + REVIEW
 	if r.user != "" && r.pass != "" {
 		url = r.url + PREFIX + CHANGES + strconv.Itoa(change) + REVISIONS + strconv.Itoa(revision) + REVIEW

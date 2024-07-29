@@ -57,8 +57,6 @@ func (f *filter) Deinit(_ context.Context) error {
 }
 
 func (f *filter) Run(ctx context.Context, _events []config.Event, projects []config.Project, event *events.Event) (bool, error) {
-	f.cfg.Logger.Debug("filter: Run")
-
 	if (_events == nil || len(_events) == 0) || (projects == nil || len(projects) == 0) {
 		return false, nil
 	}
@@ -71,8 +69,6 @@ func (f *filter) Run(ctx context.Context, _events []config.Event, projects []con
 }
 
 func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: filterEvents")
-
 	m := false
 
 	for i := range cfg {
@@ -101,8 +97,6 @@ func (f *filter) filterEvents(ctx context.Context, cfg []config.Event, event *ev
 }
 
 func (f *filter) filterProjects(ctx context.Context, cfg []config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: filterProjects")
-
 	m := false
 
 	for i := range cfg {
@@ -121,8 +115,6 @@ func (f *filter) filterProjects(ctx context.Context, cfg []config.Project, event
 }
 
 func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventName")
-
 	if cfg.Name == "" {
 		return false
 	}
@@ -131,8 +123,6 @@ func (f *filter) eventName(_ context.Context, cfg *config.Event, event *events.E
 }
 
 func (f *filter) eventMatch(data, match string) bool {
-	f.cfg.Logger.Debug("filter: eventMatch")
-
 	// e.g., "Patchset Created" replaced with "patchset-created"
 	d := strings.Replace(strings.ToLower(data), " ", eventSep, -1)
 
@@ -140,8 +130,6 @@ func (f *filter) eventMatch(data, match string) bool {
 }
 
 func (f *filter) eventCommentAdded(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventCommentAdded")
-
 	if cfg.CommentAdded.VerdictCategory == "" || cfg.CommentAdded.Value == "" {
 		return false
 	}
@@ -159,8 +147,6 @@ func (f *filter) eventCommentAdded(_ context.Context, cfg *config.Event, event *
 }
 
 func (f *filter) eventCommentAddedContainsRegularExpression(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventCommentAddedContainsRegularExpression")
-
 	if cfg.CommentAddedContainsRegularExpression.Value == "" {
 		return true
 	}
@@ -171,8 +157,6 @@ func (f *filter) eventCommentAddedContainsRegularExpression(_ context.Context, c
 }
 
 func (f *filter) eventCommitMessage(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventCommitMessage")
-
 	if cfg.CommitMessage == "" {
 		return true
 	}
@@ -197,8 +181,6 @@ func (f *filter) eventPatchsetCreated(ctx context.Context, cfg *config.Event, ev
 }
 
 func (f *filter) eventPatchsetExcludeDrafts(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventPatchsetExcludeDrafts")
-
 	if event.Change.Status != "DRAFT" && !event.PatchSet.IsDraft {
 		return false
 	}
@@ -207,8 +189,6 @@ func (f *filter) eventPatchsetExcludeDrafts(_ context.Context, cfg *config.Event
 }
 
 func (f *filter) eventPatchsetExcludeNoCodeChange(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventPatchsetExcludeNoCodeChange")
-
 	if event.PatchSet.Kind != "NO_CODE_CHANGE" {
 		return false
 	}
@@ -217,8 +197,6 @@ func (f *filter) eventPatchsetExcludeNoCodeChange(_ context.Context, cfg *config
 }
 
 func (f *filter) eventPatchsetExcludePrivateChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventPatchsetExcludePrivateChanges")
-
 	if !event.Change.Private {
 		return false
 	}
@@ -227,8 +205,6 @@ func (f *filter) eventPatchsetExcludePrivateChanges(_ context.Context, cfg *conf
 }
 
 func (f *filter) eventPatchsetExcludeTrivialRebase(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventPatchsetExcludeTrivialRebase")
-
 	if event.PatchSet.Kind != "TRIVIAL_REBASE" {
 		return false
 	}
@@ -237,8 +213,6 @@ func (f *filter) eventPatchsetExcludeTrivialRebase(_ context.Context, cfg *confi
 }
 
 func (f *filter) eventPatchsetExcludeWIPChanges(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventPatchsetExcludeWIPChanges")
-
 	if !event.Change.WIP {
 		return false
 	}
@@ -247,8 +221,6 @@ func (f *filter) eventPatchsetExcludeWIPChanges(_ context.Context, cfg *config.E
 }
 
 func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: eventUploaderName")
-
 	if cfg.UploaderName == "" {
 		return true
 	}
@@ -265,14 +237,10 @@ func (f *filter) eventUploaderName(_ context.Context, cfg *config.Event, event *
 }
 
 func (f *filter) projectRepo(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectRepo")
-
 	return f.projectMatch(cfg.Repo, event.Project)
 }
 
 func (f *filter) projectBranches(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectBranches")
-
 	if cfg.Branches == nil || len(cfg.Branches) == 0 {
 		return false
 	}
@@ -290,8 +258,6 @@ func (f *filter) projectBranches(_ context.Context, cfg *config.Project, event *
 }
 
 func (f *filter) projectFilePaths(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectFilePaths")
-
 	helper := func(match config.Match, files []events.File) bool {
 		m := false
 		for _, item := range files {
@@ -320,8 +286,6 @@ func (f *filter) projectFilePaths(_ context.Context, cfg *config.Project, event 
 }
 
 func (f *filter) projectForbiddenFilePaths(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectForbiddenFilePaths")
-
 	helper := func(match config.Match, files []events.File) bool {
 		m := false
 		for _, item := range files {
@@ -350,8 +314,6 @@ func (f *filter) projectForbiddenFilePaths(_ context.Context, cfg *config.Projec
 }
 
 func (f *filter) projectTopics(_ context.Context, cfg *config.Project, event *events.Event) bool {
-	f.cfg.Logger.Debug("filter: projectTopics")
-
 	if cfg.Topics == nil || len(cfg.Topics) == 0 {
 		return true
 	}
@@ -369,8 +331,6 @@ func (f *filter) projectTopics(_ context.Context, cfg *config.Project, event *ev
 }
 
 func (f *filter) projectMatch(match config.Match, data string) bool {
-	f.cfg.Logger.Debug("filter: projectMatch")
-
 	if match.Pattern == "" || match.Type == "" {
 		return false
 	}

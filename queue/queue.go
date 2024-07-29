@@ -49,14 +49,10 @@ func (q *queue) Deinit(_ context.Context) error {
 }
 
 func (q *queue) Get(_ context.Context) (chan string, error) {
-	q.cfg.Logger.Debug("queue: Get")
-
 	return q.events, nil
 }
 
 func (q *queue) Put(_ context.Context, data string) error {
-	q.cfg.Logger.Debug("queue: Put")
-
 	q.events <- data
 	return nil
 }
