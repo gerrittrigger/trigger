@@ -39,6 +39,7 @@ type ssh struct {
 	cfg          *SshConfig
 	client       *cryptoSsh.Client
 	clientConfig *cryptoSsh.ClientConfig
+	session      *cryptoSsh.Session
 }
 
 func SshNew(_ context.Context, cfg *SshConfig) Ssh {
@@ -98,11 +99,23 @@ func (s *ssh) Init(_ context.Context) error {
 		return errors.Wrap(err, "failed to connect server")
 	}
 
+	s.session, err = s.client.NewSession()
+	if err != nil {
+		_ = s.client.Close()
+		s.client = nil
+		return errors.Wrap(err, "failed to create session")
+	}
+
 	return nil
 }
 
 func (s *ssh) Deinit(_ context.Context) error {
 	s.cfg.Logger.Debug("ssh: Deinit")
+
+	if s.session != nil {
+		_ = s.session.Close()
+		s.session = nil
+	}
 
 	if s.client != nil {
 		_ = s.client.Close()
@@ -126,6 +139,13 @@ func (s *ssh) Reconnect(ctx context.Context) error {
 		return errors.Wrap(err, "failed to connect server")
 	}
 
+	s.session, err = s.client.NewSession()
+	if err != nil {
+		_ = s.client.Close()
+		s.client = nil
+		return errors.Wrap(err, "failed to create session")
+	}
+
 	return nil
 }
 
@@ -134,19 +154,7 @@ func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 		return "", errors.New("invalid client")
 	}
 
-	session, err := s.client.NewSession()
-
-	defer func(session *cryptoSsh.Session) {
-		if session != nil {
-			_ = session.Close()
-		}
-	}(session)
-
-	if err != nil {
-		return "", errors.Wrap(err, "failed to create session")
-	}
-
-	out, err := session.CombinedOutput(prefix + cmd)
+	out, err := s.session.CombinedOutput(prefix + cmd)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to run session")
 	}
@@ -168,24 +176,13 @@ func (s *ssh) Start(ctx context.Context, cmd string, out chan string) error {
 		return errors.New("invalid client")
 	}
 
-	session, err := s.client.NewSession()
+	stderr, err := s.session.StderrPipe()
 	if err != nil {
-		return errors.Wrap(err, "failed to create session")
-	}
-
-	stderr, err := session.StderrPipe()
-	if err != nil {
-		if session != nil {
-			_ = session.Close()
-		}
 		return errors.Wrap(err, "failed to pipe stderr")
 	}
 
-	stdout, err := session.StdoutPipe()
+	stdout, err := s.session.StdoutPipe()
 	if err != nil {
-		if session != nil {
-			_ = session.Close()
-		}
 		return errors.Wrap(err, "failed to pipe stdout")
 	}
 
@@ -202,16 +199,12 @@ func (s *ssh) Start(ctx context.Context, cmd string, out chan string) error {
 		return nil
 	})
 
-	if err := session.Start(prefix + cmd); err != nil {
-		if session != nil {
-			_ = session.Close()
-		}
+	if err := s.session.Start(prefix + cmd); err != nil {
 		return errors.Wrap(err, "failed to start session")
 	}
 
 	g.Go(func() error {
-		_ = session.Wait()
-		_ = session.Close()
+		_ = s.session.Wait()
 		return nil
 	})
 
