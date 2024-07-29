@@ -10,6 +10,7 @@ import (
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
 	"github.com/gerrittrigger/trigger/config"
@@ -26,6 +27,7 @@ import (
 const (
 	level = "INFO"
 	name  = "trigger"
+	num   = -1
 )
 
 var (
@@ -260,34 +262,40 @@ func runTrigger(ctx context.Context, logger hclog.Logger, t trigger.Trigger) err
 		return errors.Wrap(err, "failed to init")
 	}
 
-	p := make(chan map[string]string)
-	s := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(num)
+
+	param := make(chan map[string]string)
+
+	g.Go(func() error {
+		logger.Debug("cmd: runTrigger: Run")
+		_ = t.Run(ctx, nil, nil, param)
+		return nil
+	})
+
+	g.Go(func() error {
+		for item := range param {
+			logger.Info("cmd: runTrigger", item)
+		}
+		return nil
+	})
+
+	_signal := make(chan os.Signal, 1)
 
 	// kill (no param) default send syscanll.SIGTERM
 	// kill -2 is syscall.SIGINT
 	// kill -9 is syscall.SIGKILL but can"t be caught, so don't need add it
-	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(_signal, syscall.SIGINT, syscall.SIGTERM)
 
-	go func(c context.Context, p chan map[string]string) {
-		logger.Debug("cmd: runTrigger: Run")
-		_ = t.Run(c, nil, nil, p)
-	}(ctx, p)
+	g.Go(func() error {
+		<-_signal
+		_ = t.Deinit(ctx)
+		return nil
+	})
 
-	go func(p chan map[string]string) {
-		for item := range p {
-			logger.Info("cmd: runTrigger", item)
-		}
-	}(p)
-
-	go func(c context.Context, t trigger.Trigger, s chan os.Signal) {
-		logger.Debug("cmd: runTrigger: Deinit")
-		<-s
-		_ = t.Deinit(c)
-		done <- true
-	}(ctx, t, s)
-
-	<-done
+	if err := g.Wait(); err != nil {
+		return errors.Wrap(err, "failed to wait")
+	}
 
 	return nil
 }
