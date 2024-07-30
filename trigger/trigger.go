@@ -148,7 +148,9 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 	}
 
 	g.Go(func() error {
-		_ = t.postReport(ctx, _events, projects, param)
+		if err := t.postReport(ctx, _events, projects, param); err != nil {
+			return err
+		}
 		return nil
 	})
 
