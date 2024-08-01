@@ -25,9 +25,9 @@ const (
 type Ssh interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
-	Reconnect(context.Context) error
 	Run(context.Context, string) (string, error)
 	Start(context.Context, string, chan string) error
+	Reconnect(context.Context) error
 }
 
 type SshConfig struct {
@@ -125,30 +125,6 @@ func (s *ssh) Deinit(_ context.Context) error {
 	return nil
 }
 
-func (s *ssh) Reconnect(ctx context.Context) error {
-	var err error
-
-	_ = s.Deinit(ctx)
-
-	host := s.cfg.Config.Spec.Connect.Hostname
-	port := s.cfg.Config.Spec.Connect.Ssh.Port
-
-	s.client, err = cryptoSsh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), s.clientConfig)
-	if err != nil {
-		s.client = nil
-		return errors.Wrap(err, "failed to connect server")
-	}
-
-	s.session, err = s.client.NewSession()
-	if err != nil {
-		_ = s.client.Close()
-		s.client = nil
-		return errors.Wrap(err, "failed to create session")
-	}
-
-	return nil
-}
-
 func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 	if s.client == nil {
 		return "", errors.New("invalid client")
@@ -207,6 +183,30 @@ func (s *ssh) Start(ctx context.Context, cmd string, out chan string) error {
 		_ = s.session.Wait()
 		return nil
 	})
+
+	return nil
+}
+
+func (s *ssh) Reconnect(ctx context.Context) error {
+	var err error
+
+	_ = s.Deinit(ctx)
+
+	host := s.cfg.Config.Spec.Connect.Hostname
+	port := s.cfg.Config.Spec.Connect.Ssh.Port
+
+	s.client, err = cryptoSsh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), s.clientConfig)
+	if err != nil {
+		s.client = nil
+		return errors.Wrap(err, "failed to connect server")
+	}
+
+	s.session, err = s.client.NewSession()
+	if err != nil {
+		_ = s.client.Close()
+		s.client = nil
+		return errors.Wrap(err, "failed to create session")
+	}
 
 	return nil
 }

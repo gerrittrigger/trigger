@@ -19,7 +19,7 @@ const (
 type Watchdog interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
-	Run(context.Context, connect.Ssh, chan bool, chan bool) error
+	Run(context.Context, connect.Ssh, chan bool) error
 }
 
 type Config struct {
@@ -53,7 +53,7 @@ func (w *watchdog) Deinit(_ context.Context) error {
 	return nil
 }
 
-func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, reconn, start chan bool) error {
+func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, start chan bool) error {
 	p := time.Duration(w.cfg.Config.Spec.Watchdog.PeriodSeconds)
 	t := time.Duration(w.cfg.Config.Spec.Watchdog.TimeoutSeconds)
 
@@ -70,7 +70,7 @@ func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, reconn, start chan 
 		case <-ticker.C:
 			if err := w.check(ctx, ssh); err != nil {
 				time.Sleep(t)
-				reconn <- true
+				start <- true
 			}
 		}
 	}

@@ -186,21 +186,16 @@ func (t *trigger) playbackEvent(ctx context.Context) error {
 func (t *trigger) fetchEvent(ctx context.Context, event chan string) {
 	t.cfg.Logger.Debug("trigger: fetchEvent")
 
-	reconn := make(chan bool, 1)
 	start := make(chan bool, 1)
 
 	_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
 
-	go func(ctx context.Context, reconn, start chan bool) {
-		_ = t.cfg.Watchdog.Run(ctx, t.cfg.Ssh, reconn, start)
-	}(ctx, reconn, start)
+	go func(ctx context.Context, start chan bool) {
+		_ = t.cfg.Watchdog.Run(ctx, t.cfg.Ssh, start)
+	}(ctx, start)
 
 	for {
 		select {
-		case <-reconn:
-			if err := t.cfg.Ssh.Reconnect(ctx); err == nil {
-				start <- true
-			}
 		case <-start:
 			_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
 		}
