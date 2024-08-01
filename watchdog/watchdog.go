@@ -68,11 +68,10 @@ func (w *watchdog) Run(ctx context.Context, ssh connect.Ssh, start chan bool) er
 	for {
 		select {
 		case <-ticker.C:
-			if err := w.check(ctx, ssh); err != nil {
-				time.Sleep(t)
-				start <- true
-			}
+			time.Sleep(t)
+			start <- true
 		}
+		start <- false
 	}
 }
 

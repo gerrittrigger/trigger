@@ -188,16 +188,16 @@ func (t *trigger) fetchEvent(ctx context.Context, event chan string) {
 
 	start := make(chan bool, 1)
 
-	_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
-
 	go func(ctx context.Context, start chan bool) {
 		_ = t.cfg.Watchdog.Run(ctx, t.cfg.Ssh, start)
 	}(ctx, start)
 
 	for {
 		select {
-		case <-start:
-			_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
+		case s := <-start:
+			if s {
+				_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
+			}
 		}
 	}
 }
