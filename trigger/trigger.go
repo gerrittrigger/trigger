@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/gerrittrigger/trigger/config"
 	"github.com/gerrittrigger/trigger/connect"
@@ -120,24 +119,7 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 		}
 	}
 
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(num)
-
-	buf := make(chan string)
-
-	g.Go(func() error {
-		t.fetchEvent(ctx, buf)
-		return nil
-	})
-
-	g.Go(func() error {
-		for item := range buf {
-			if err := t.cfg.Queue.Put(ctx, item); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	t.fetchEvent(ctx)
 
 	if _events == nil || len(_events) == 0 {
 		_events = t.cfg.Config.Spec.Trigger.Events
@@ -147,15 +129,8 @@ func (t *trigger) Run(ctx context.Context, _events []config.Event, projects []co
 		projects = t.cfg.Config.Spec.Trigger.Projects
 	}
 
-	g.Go(func() error {
-		if err := t.postReport(ctx, _events, projects, param); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err := g.Wait(); err != nil {
-		return errors.Wrap(err, "failed to wait")
+	if err := t.postReport(ctx, _events, projects, param); err != nil {
+		return errors.Wrap(err, "failed to post report")
 	}
 
 	return nil
@@ -183,23 +158,10 @@ func (t *trigger) playbackEvent(ctx context.Context) error {
 	return err
 }
 
-func (t *trigger) fetchEvent(ctx context.Context, event chan string) {
+func (t *trigger) fetchEvent(ctx context.Context) {
 	t.cfg.Logger.Debug("trigger: fetchEvent")
 
-	start := make(chan bool, 1)
-
-	go func(ctx context.Context, start chan bool) {
-		_ = t.cfg.Watchdog.Run(ctx, t.cfg.Ssh, start)
-	}(ctx, start)
-
-	for {
-		select {
-		case s := <-start:
-			if s {
-				_ = t.cfg.Ssh.Start(ctx, "stream-events", event)
-			}
-		}
-	}
+	_ = t.cfg.Ssh.Start(ctx, "stream-events", t.cfg.Queue)
 }
 
 func (t *trigger) postReport(ctx context.Context, _events []config.Event, projects []config.Project, param chan map[string]string) error {
@@ -209,6 +171,11 @@ func (t *trigger) postReport(ctx context.Context, _events []config.Event, projec
 	var err error
 	var m bool
 	var r chan string
+
+	defer func() {
+		close(param)
+		_ = t.cfg.Queue.Close(ctx)
+	}()
 
 	r, err = t.cfg.Queue.Get(ctx)
 	if err != nil {

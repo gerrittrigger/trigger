@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/gerrittrigger/trigger/config"
+	"github.com/gerrittrigger/trigger/queue"
 )
 
 const (
@@ -26,7 +27,7 @@ type Ssh interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
 	Run(context.Context, string) (string, error)
-	Start(context.Context, string, chan string) error
+	Start(context.Context, string, queue.Queue) error
 	Reconnect(context.Context) error
 }
 
@@ -138,12 +139,12 @@ func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 	return string(out), nil
 }
 
-func (s *ssh) Start(ctx context.Context, cmd string, out chan string) error {
+func (s *ssh) Start(ctx context.Context, cmd string, _queue queue.Queue) error {
 	helper := func(r io.Reader) {
 		scan := bufio.NewScanner(r)
 		scan.Split(bufio.ScanLines)
 		for scan.Scan() {
-			out <- scan.Text()
+			_ = _queue.Put(ctx, scan.Text())
 		}
 		_ = scan.Err()
 	}

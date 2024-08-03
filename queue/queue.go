@@ -13,6 +13,7 @@ type Queue interface {
 	Deinit(context.Context) error
 	Get(context.Context) (chan string, error)
 	Put(context.Context, string) error
+	Close(context.Context) error
 }
 
 type Config struct {
@@ -54,5 +55,10 @@ func (q *queue) Get(_ context.Context) (chan string, error) {
 
 func (q *queue) Put(_ context.Context, data string) error {
 	q.events <- data
+	return nil
+}
+
+func (q *queue) Close(_ context.Context) error {
+	close(q.events)
 	return nil
 }

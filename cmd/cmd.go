@@ -5,12 +5,10 @@ import (
 	"io"
 	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
 	"github.com/gerrittrigger/trigger/config"
@@ -262,39 +260,23 @@ func runTrigger(ctx context.Context, logger hclog.Logger, t trigger.Trigger) err
 		return errors.Wrap(err, "failed to init")
 	}
 
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(num)
-
 	param := make(chan map[string]string)
 
-	g.Go(func() error {
-		logger.Debug("cmd: runTrigger: Run")
+	go func() {
 		_ = t.Run(ctx, nil, nil, param)
-		return nil
-	})
-
-	g.Go(func() error {
-		for item := range param {
-			logger.Info("cmd: runTrigger", item)
-		}
-		return nil
-	})
+	}()
 
 	_signal := make(chan os.Signal, 1)
+	signal.Notify(_signal, os.Interrupt)
 
-	// kill (no param) default send syscanll.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can"t be caught, so don't need add it
-	signal.Notify(_signal, syscall.SIGINT, syscall.SIGTERM)
-
-	g.Go(func() error {
+	go func() {
 		<-_signal
+		defer close(param)
 		_ = t.Deinit(ctx)
-		return nil
-	})
+	}()
 
-	if err := g.Wait(); err != nil {
-		return errors.Wrap(err, "failed to wait")
+	for item := range param {
+		logger.Info("cmd: runTrigger", item)
 	}
 
 	return nil
