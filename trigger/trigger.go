@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gerrittrigger/trigger/config"
 	"github.com/gerrittrigger/trigger/connect"
@@ -162,46 +163,58 @@ func (t *trigger) fetchEvent(ctx context.Context) {
 func (t *trigger) postReport(ctx context.Context, _events []config.Event, projects []config.Project, param chan map[string]string) error {
 	t.cfg.Logger.Debug("trigger: postReport")
 
-	var b map[string]string
-	var err error
-	var m bool
-	var r chan string
-
-	defer func() {
-		close(param)
-		_ = t.cfg.Queue.Close(ctx)
-	}()
-
-	r, err = t.cfg.Queue.Get(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to get queue")
-	}
-
-	for item := range r {
+	helper := func(data string) error {
 		e := events.Event{}
-		if err = json.Unmarshal([]byte(item), &e); err != nil {
-			break
+		if err := json.Unmarshal([]byte(data), &e); err != nil {
+			return errors.Wrap(err, "failed to unmarshal json")
 		}
-		if err = t.cfg.Query.Run(ctx, _events, projects, &e, t.cfg.Ssh); err != nil {
-			break
+		if err := t.cfg.Query.Run(ctx, _events, projects, &e, t.cfg.Ssh); err != nil {
+			return errors.Wrap(err, "failed to run query")
 		}
-		m, err = t.cfg.Filter.Run(ctx, _events, projects, &e)
+		m, err := t.cfg.Filter.Run(ctx, _events, projects, &e)
 		if err != nil {
-			break
+			return errors.Wrap(err, "failed to run filter")
 		}
 		if m {
-			b, err = t.cfg.Report.Run(ctx, &e)
+			b, err := t.cfg.Report.Run(ctx, &e)
 			if err != nil {
-				break
+				return errors.Wrap(err, "failed to run report")
 			}
 			param <- b
 		}
 		if t.pb {
-			if err = t.cfg.Playback.Store(ctx, item); err != nil {
-				break
+			if err := t.cfg.Playback.Store(ctx, data); err != nil {
+				return errors.Wrap(err, "failed to run store")
 			}
 		}
+		return nil
 	}
 
-	return err
+	defer func() {
+		_ = t.cfg.Queue.Close(ctx)
+		close(param)
+	}()
+
+	r, err := t.cfg.Queue.Get(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get queue")
+	}
+
+	g, _ := errgroup.WithContext(ctx)
+	g.SetLimit(num)
+
+	g.Go(func() error {
+		for {
+			select {
+			case buf := <-r:
+				if err := helper(buf); err != nil {
+					return err
+				}
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
+
+	return nil
 }

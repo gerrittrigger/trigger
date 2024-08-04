@@ -140,13 +140,13 @@ func (s *ssh) Run(_ context.Context, cmd string) (string, error) {
 }
 
 func (s *ssh) Start(ctx context.Context, cmd string, _queue queue.Queue) error {
-	helper := func(r io.Reader) {
+	helper := func(r io.Reader) error {
 		scan := bufio.NewScanner(r)
 		scan.Split(bufio.ScanLines)
 		for scan.Scan() {
 			_ = _queue.Put(ctx, scan.Text())
 		}
-		_ = scan.Err()
+		return scan.Err()
 	}
 
 	if s.client == nil {
@@ -167,13 +167,11 @@ func (s *ssh) Start(ctx context.Context, cmd string, _queue queue.Queue) error {
 	g.SetLimit(num)
 
 	g.Go(func() error {
-		helper(stderr)
-		return nil
+		return helper(stderr)
 	})
 
 	g.Go(func() error {
-		helper(stdout)
-		return nil
+		return helper(stdout)
 	})
 
 	if err := s.session.Start(prefix + cmd); err != nil {

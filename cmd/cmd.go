@@ -269,9 +269,7 @@ func runTrigger(ctx context.Context, logger hclog.Logger, t trigger.Trigger) err
 
 	param := make(chan map[string]string)
 
-	go func() {
-		_ = t.Run(ctx, nil, nil, param)
-	}()
+	_ = t.Run(ctx, nil, nil, param)
 
 	_signal := make(chan os.Signal, 1)
 	signal.Notify(_signal, os.Interrupt)
