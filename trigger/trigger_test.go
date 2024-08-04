@@ -7,6 +7,5 @@ import (
 )
 
 func TestTrigger(t *testing.T) {
-	// TODO: TestTrigger
 	assert.Equal(t, nil, nil)
 }

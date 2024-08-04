@@ -11,8 +11,8 @@ import (
 type Queue interface {
 	Init(context.Context) error
 	Deinit(context.Context) error
-	Get(context.Context) (chan string, error)
 	Put(context.Context, string) error
+	Get(context.Context) (chan string, error)
 	Close(context.Context) error
 }
 
@@ -49,13 +49,13 @@ func (q *queue) Deinit(_ context.Context) error {
 	return nil
 }
 
-func (q *queue) Get(_ context.Context) (chan string, error) {
-	return q.events, nil
-}
-
 func (q *queue) Put(_ context.Context, data string) error {
 	q.events <- data
 	return nil
+}
+
+func (q *queue) Get(_ context.Context) (chan string, error) {
+	return q.events, nil
 }
 
 func (q *queue) Close(_ context.Context) error {

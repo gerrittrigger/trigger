@@ -214,6 +214,8 @@ func initReport(ctx context.Context, logger hclog.Logger, cfg *config.Config) (r
 func initWatchdog(ctx context.Context, logger hclog.Logger, cfg *config.Config) (watchdog.Watchdog, error) {
 	logger.Debug("cmd: initWatchdog")
 
+	var err error
+
 	c := watchdog.DefaultConfig()
 	if c == nil {
 		return nil, errors.New("failed to config")
@@ -221,6 +223,11 @@ func initWatchdog(ctx context.Context, logger hclog.Logger, cfg *config.Config) 
 
 	c.Config = *cfg
 	c.Logger = logger
+
+	_, c.Ssh, err = initConnect(ctx, logger, cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to init connect")
+	}
 
 	return watchdog.New(ctx, c), nil
 }

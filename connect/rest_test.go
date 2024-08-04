@@ -63,8 +63,3 @@ func TestVersion(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, nil, buf)
 }
-
-func TestVote(t *testing.T) {
-	// PASS
-	assert.Equal(t, nil, nil)
-}

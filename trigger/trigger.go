@@ -89,17 +89,12 @@ func (t *trigger) Init(ctx context.Context) error {
 		return errors.Wrap(err, "failed to init ssh")
 	}
 
-	if err := t.cfg.Watchdog.Init(ctx); err != nil {
-		return errors.Wrap(err, "failed to init watchdog")
-	}
-
 	return nil
 }
 
 func (t *trigger) Deinit(ctx context.Context) error {
 	t.cfg.Logger.Debug("trigger: Deinit")
 
-	_ = t.cfg.Watchdog.Deinit(ctx)
 	_ = t.cfg.Ssh.Deinit(ctx)
 	_ = t.cfg.Report.Deinit(ctx)
 	_ = t.cfg.Queue.Deinit(ctx)
