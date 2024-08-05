@@ -87,7 +87,7 @@ func (s *ssh) Init(_ context.Context) error {
 			cryptoSsh.KeyAlgoED25519,
 			cryptoSsh.KeyAlgoRSA,
 		},
-		Timeout:         time.Duration(s.cfg.Config.Spec.Watchdog.TimeoutSeconds),
+		Timeout:         time.Duration(s.cfg.Config.Spec.Watchdog.TimeoutSeconds) * time.Second,
 		HostKeyCallback: hostKeyCallback,
 	}
 

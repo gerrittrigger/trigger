@@ -64,7 +64,7 @@ func (w *watchdog) Deinit(ctx context.Context) error {
 }
 
 func (w *watchdog) Start(ctx context.Context, conn, done chan bool) error {
-	p := time.Duration(w.cfg.Config.Spec.Watchdog.PeriodSeconds)
+	p := time.Duration(w.cfg.Config.Spec.Watchdog.PeriodSeconds) * time.Second
 
 	if p == 0 {
 		done <- true
