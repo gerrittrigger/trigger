@@ -185,6 +185,18 @@ GERRIT_TOPIC
 
 
 
+## Test
+
+```bash
+# Listen stream events on gerrit
+ssh -p 29418 127.0.0.1 gerrit stream-events
+
+# Show connections on gerrit
+ssh -p 29418 127.0.0.1 gerrit show-connections
+```
+
+
+
 ## License
 
 Project License can be found [here](LICENSE).
